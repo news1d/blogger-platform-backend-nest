@@ -1,4 +1,5 @@
-import { Module, Post } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersController } from './features/user-accounts/api/users.controller';
@@ -31,11 +32,11 @@ import {
 } from './features/bloggers-platform/comments/domain/comment.entity';
 import { TestingController } from './testing/api/testing.controller';
 import { TestingService } from './testing/application/testing.service';
-import { SETTINGS } from './settings';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(SETTINGS.MONGO_URL),
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://0.0.0.0:27017'),
     MongooseModule.forFeature([
       {
         name: User.name,

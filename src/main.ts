@@ -6,8 +6,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   appSetup(app);
-
-  // Тут добавить подключение к базе данных
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
