@@ -1,86 +1,79 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
-import { UpdateUserDto } from '../dto/create-user.dto';
 import { CreateUserDomainDto } from './dto/create-user.domain.dto';
 import { DeletionStatus } from '../../../core/dto/deletion-status';
+import { add } from 'date-fns';
 
 export type UserDocument = HydratedDocument<User>;
 export type UserModelType = Model<UserDocument> & typeof User;
 
+export const loginConstraints = {
+  minLength: 3,
+  maxLength: 10,
+  match: /^[a-zA-Z0-9_-]*$/,
+};
+
+export const passwordConstraints = {
+  minLength: 6,
+  maxLength: 20,
+};
+
+export const emailConstraints = {
+  match: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+};
+
 @Schema({ timestamps: true })
 export class User {
-  /**
-   * Login of the user (must be uniq)
-   * @type {string}
-   * @required
-   */
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true, ...loginConstraints })
   login: string;
 
-  /**
-   * Email of the user
-   * @type {string}
-   * @required
-   */
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true, ...emailConstraints })
   email: string;
 
-  /**
-   * Password hash for authentication
-   * @type {string}
-   * @required
-   */
   @Prop({ type: String, required: true })
   passwordHash: string;
 
-  /**
-   * Email confirmation status (if not confirmed in 2 days account will be deleted)
-   * @type {boolean}
-   * @default false
-   */
-  @Prop({ type: Boolean, required: true, default: false })
-  isEmailConfirmed: boolean;
+  @Prop({
+    type: {
+      confirmationCode: { type: String, default: null },
+      expirationDate: { type: Date, default: null },
+      isConfirmed: { type: Boolean, default: false },
+    },
+    default: {},
+  })
+  emailConfirmation: {
+    confirmationCode: string | null;
+    expirationDate: Date | null;
+    isConfirmed: boolean;
+  };
 
-  /**
-   * Creation timestamp
-   * Explicitly defined despite timestamps: true
-   * properties without @Prop for typescript so that they are in the class instance (or in instance methods)
-   * @type {Date}
-   */
+  @Prop({
+    type: {
+      recoveryCode: { type: String, default: null },
+      expirationDate: { type: Date, default: null },
+    },
+    default: {},
+  })
+  passwordRecovery: {
+    recoveryCode: string | null;
+    expirationDate: Date | null;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 
-  /**
-   * Status of deletion
-   * @type {DeletionStatus}
-   * @default DeletionStatus.NotDeleted
-   * в принципе этот статус избыточен и достаточно посмотреть на deletedAt - если он есть, значит запись удалена
-   */
   @Prop({ enum: DeletionStatus, default: DeletionStatus.NotDeleted })
   deletionStatus: DeletionStatus;
 
-  /**
-   * Factory method to create a User instance
-   * @param {CreateUserDto} dto - The data transfer object for user creation
-   * @returns {UserDocument} The created user document
-   * DDD started: как создать сущность, чтобы она не нарушала бизнес-правила? Делегируем это создание статическому методу
-   */
   static createInstance(dto: CreateUserDomainDto): UserDocument {
     const user = new this();
     user.email = dto.email;
     user.passwordHash = dto.passwordHash;
     user.login = dto.login;
-    user.isEmailConfirmed = false;
 
     return user as UserDocument;
   }
 
-  /**
-   * Marks the user as deleted
-   * Throws an error if already deleted
-   * @throws {Error} If the entity is already deleted
-   * DDD сontinue: инкапсуляция (вызываем методы, которые меняют состояние\св-ва) объектов согласно правилам этого объекта
-   */
   makeDeleted() {
     if (this.deletionStatus !== DeletionStatus.NotDeleted) {
       throw new Error('User already deleted');
@@ -88,17 +81,22 @@ export class User {
     this.deletionStatus = DeletionStatus.PermanentDeleted;
   }
 
-  /**
-   * Updates the user instance with new data
-   * Resets email confirmation if email is updated
-   * @param {UpdateUserDto} dto - The data transfer object for user updates
-   * DDD сontinue: инкапсуляция (вызываем методы, которые меняют состояние\св-ва) объектов согласно правилам этого объекта
-   */
-  update(dto: UpdateUserDto) {
-    if (dto.email !== this.email) {
-      this.isEmailConfirmed = false;
-    }
-    this.email = dto.email;
+  setEmailConfirmationCode(code: string) {
+    this.emailConfirmation.confirmationCode = code;
+    this.emailConfirmation.expirationDate = add(new Date(), { minutes: 5 });
+  }
+
+  setPasswordRecoveryCode(code: string) {
+    this.passwordRecovery.recoveryCode = code;
+    this.passwordRecovery.expirationDate = add(new Date(), { minutes: 5 });
+  }
+
+  updatePasswordHash(passwordHash: string) {
+    this.passwordHash = passwordHash;
+  }
+
+  updateEmailConfirmationStatus() {
+    this.emailConfirmation.isConfirmed = true;
   }
 }
 
