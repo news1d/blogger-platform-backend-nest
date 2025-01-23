@@ -67,8 +67,10 @@ export class AuthController {
 
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationConfirmation(@Body() code: string): Promise<void> {
-    return this.authService.registrationConfirmation(code);
+  async registrationConfirmation(
+    @Body() body: { code: string },
+  ): Promise<void> {
+    return this.authService.registrationConfirmation(body.code);
   }
 
   @Post('registration')
