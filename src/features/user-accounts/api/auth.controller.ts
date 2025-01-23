@@ -23,6 +23,7 @@ import {
   NewPasswordRecoveryInputDto,
   PasswordRecoveryInputDto,
 } from './input-dto/password-recovery.input-dto';
+import { VerificationCodeInputDTO } from './input-dto/verification-code.input-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -68,7 +69,7 @@ export class AuthController {
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(
-    @Body() body: { code: string },
+    @Body() body: VerificationCodeInputDTO,
   ): Promise<void> {
     return this.authService.registrationConfirmation(body.code);
   }
