@@ -32,6 +32,16 @@ import {
 } from './features/bloggers-platform/comments/domain/comment.entity';
 import { TestingController } from './testing/api/testing.controller';
 import { TestingService } from './testing/application/testing.service';
+import { CryptoService } from './features/user-accounts/application/crypto.service';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EmailService } from './features/notifications/email.service';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthController } from './features/user-accounts/api/auth.controller';
+import { AuthService } from './features/user-accounts/application/auth.service';
+import { AuthQueryRepository } from './features/user-accounts/infrastructure/query/auth.query-repository';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './features/user-accounts/guards/local/local.strategy';
+import { JwtStrategy } from './features/user-accounts/guards/bearer/jwt.strategy';
 
 @Module({
   imports: [
@@ -46,6 +56,25 @@ import { TestingService } from './testing/application/testing.service';
       { name: BlogPost.name, schema: PostSchema },
       { name: PostComment.name, schema: CommentSchema },
     ]),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '10m' },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASSWORD,
+        },
+      },
+      defaults: {
+        from: `SonicBitService <${process.env.EMAIL}>`,
+      },
+    }),
+    PassportModule,
   ],
   controllers: [
     AppController,
@@ -54,6 +83,7 @@ import { TestingService } from './testing/application/testing.service';
     PostsController,
     CommentsController,
     TestingController,
+    AuthController,
   ],
   providers: [
     AppService,
@@ -68,6 +98,12 @@ import { TestingService } from './testing/application/testing.service';
     PostsQueryRepository,
     CommentsQueryRepository,
     TestingService,
+    CryptoService,
+    EmailService,
+    AuthService,
+    AuthQueryRepository,
+    LocalStrategy,
+    JwtStrategy,
   ],
 })
 export class AppModule {}
