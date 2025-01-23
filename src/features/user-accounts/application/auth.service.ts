@@ -57,7 +57,7 @@ export class AuthService {
     user.setPasswordRecoveryCode(confirmCode);
     await this.usersRepository.save(user);
 
-    this.emailService
+    await this.emailService
       .sendPasswordRecoveryEmail(user.email, confirmCode)
       .catch(console.error);
   }
@@ -112,7 +112,7 @@ export class AuthService {
     user.setEmailConfirmationCode(confirmCode);
     await this.usersRepository.save(user);
 
-    this.emailService
+    await this.emailService
       .sendConfirmationEmail(user.email, confirmCode)
       .catch(console.error);
   }
