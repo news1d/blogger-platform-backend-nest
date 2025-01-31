@@ -68,6 +68,37 @@ export class BlogPost {
     return post as PostDocument;
   }
 
+  updateLikeStatus(userId: string, userLogin: string, likeStatus: LikeStatus) {
+    const existingLike = this.likes.find((like) => like.userId === userId);
+
+    if (existingLike) {
+      // Обновляем существующую запись о лайке
+      existingLike.status = likeStatus;
+      existingLike.createdAt = new Date();
+      existingLike.updatedAt = new Date();
+    } else {
+      // Добавляем новую запись о лайке
+      this.likes.push({
+        status: likeStatus,
+        userId: userId,
+        login: userLogin,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    this.recalculateLikesCounters();
+  }
+
+  private recalculateLikesCounters() {
+    this.likesCount = this.likes.filter(
+      (like) => like.status === LikeStatus.Like,
+    ).length;
+    this.dislikesCount = this.likes.filter(
+      (like) => like.status === LikeStatus.Dislike,
+    ).length;
+  }
+
   update(dto: CreatePostInputDto) {
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
