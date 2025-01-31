@@ -6,31 +6,35 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
-import { UsersService } from '../application/users.service';
 import { CreateUserInputDto, EmailInputDto } from './input-dto/users.input-dto';
 import { LocalAuthGuard } from '../guards/local/local-auth.guard';
-import { AuthService } from '../application/auth.service';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { Nullable, UserContextDto } from '../guards/dto/user-context.dto';
+import { UserContextDto } from '../guards/dto/user-context.dto';
 import { MeViewDto } from './view-dto/users.view-dto';
 import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
 import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
-import { JwtOptionalAuthGuard } from '../guards/bearer/jwt-optional-auth.guard';
-import { ExtractUserIfExistsFromRequest } from '../guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import {
   NewPasswordRecoveryInputDto,
   PasswordRecoveryInputDto,
 } from './input-dto/password-recovery.input-dto';
 import { VerificationCodeInputDTO } from './input-dto/verification-code.input-dto';
+import { CommandBus } from '@nestjs/cqrs';
+import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
+import { LoginUserCommand } from '../application/usecases/login-user.usecase';
+import { UpdatePasswordCommand } from '../application/usecases/update-password.usecase';
+import { PasswordRecoveryCommand } from '../application/usecases/password-recovery.usecase';
+import { RegistrationConfirmationCommand } from '../application/usecases/registration-confirmation.usecase';
+import { RegistrationEmailResendingCommand } from '../application/usecases/registration-email-resending.usecase';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private usersService: UsersService,
-    private authService: AuthService,
     private authQueryRepository: AuthQueryRepository,
+    private commandBus: CommandBus,
   ) {}
 
   @Post('login')
@@ -48,8 +52,15 @@ export class AuthController {
   })
   async login(
     @ExtractUserFromRequest() user: UserContextDto,
-  ): Promise<{ accessToken: string }> {
-    return this.authService.login(user.id);
+    @Res() res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+      new LoginUserCommand(user.id),
+    );
+
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+
+    return res.json({ accessToken: accessToken });
   }
 
   @Post('password-recovery')
@@ -57,13 +68,13 @@ export class AuthController {
   async passwordRecovery(
     @Body() body: PasswordRecoveryInputDto,
   ): Promise<void> {
-    return this.authService.passwordRecovery(body);
+    return this.commandBus.execute(new PasswordRecoveryCommand(body));
   }
 
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() body: NewPasswordRecoveryInputDto): Promise<void> {
-    return this.usersService.newPassword(body);
+    return this.commandBus.execute(new UpdatePasswordCommand(body));
   }
 
   @Post('registration-confirmation')
@@ -71,19 +82,23 @@ export class AuthController {
   async registrationConfirmation(
     @Body() body: VerificationCodeInputDTO,
   ): Promise<void> {
-    return this.authService.registrationConfirmation(body.code);
+    return this.commandBus.execute(
+      new RegistrationConfirmationCommand(body.code),
+    );
   }
 
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() body: CreateUserInputDto): Promise<void> {
-    return this.usersService.registerUser(body);
+    return this.commandBus.execute(new RegisterUserCommand(body));
   }
 
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailInputDto): Promise<void> {
-    return this.authService.registrationEmailResending(body.email);
+    return this.commandBus.execute(
+      new RegistrationEmailResendingCommand(body.email),
+    );
   }
 
   @ApiBearerAuth()
@@ -92,21 +107,4 @@ export class AuthController {
   async me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
     return this.authQueryRepository.me(user.id);
   }
-
-  // @ApiBearerAuth()
-  // @Get('me-or-default')
-  // @UseGuards(JwtOptionalAuthGuard)
-  // async meOrDefault(
-  //   @ExtractUserIfExistsFromRequest() user: UserContextDto,
-  // ): Promise<Nullable<MeViewDto>> {
-  //   if (user) {
-  //     return this.authQueryRepository.me(user.id!);
-  //   } else {
-  //     return {
-  //       login: 'anonymous',
-  //       userId: null,
-  //       email: null,
-  //     };
-  //   }
-  // }
 }
