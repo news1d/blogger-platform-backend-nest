@@ -3,5 +3,8 @@ import { AllExceptionsFilter } from '../core/exceptions/filters/all-exceptions-f
 import { DomainExceptionsFilter } from '../core/exceptions/filters/domain-exceptions-filter';
 
 export function exceptionFilterSetup(app: INestApplication) {
-  app.useGlobalFilters(new AllExceptionsFilter(), new DomainExceptionsFilter());
+  app.useGlobalFilters(
+    app.get(AllExceptionsFilter),
+    new DomainExceptionsFilter(),
+  );
 }

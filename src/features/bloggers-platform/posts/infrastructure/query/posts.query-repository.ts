@@ -15,6 +15,7 @@ export class PostsQueryRepository {
   async getAllPosts(
     query: GetPostsQueryParams,
     blogId?: string,
+    userId?: string | null,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     const filter: FilterQuery<User> = {
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
@@ -31,7 +32,7 @@ export class PostsQueryRepository {
 
     const totalCount = await this.PostModel.countDocuments(filter);
 
-    const items = posts.map(PostViewDto.mapToView);
+    const items = posts.map((post) => PostViewDto.mapToView(post, userId));
 
     return PaginatedViewDto.mapToView({
       items,

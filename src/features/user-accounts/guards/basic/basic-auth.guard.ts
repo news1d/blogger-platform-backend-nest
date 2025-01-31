@@ -3,13 +3,17 @@ import { Request } from 'express';
 import { UnauthorizedDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { AuthConfig } from '../../config/auth.config';
 
 @Injectable()
 export class BasicAuthGuard implements CanActivate {
-  private readonly validUsername = process.env.BASIC_AUTH_USERNAME;
-  private readonly validPassword = process.env.BASIC_AUTH_PASSWORD;
+  private readonly validUsername = this.authConfig.authUsername;
+  private readonly validPassword = this.authConfig.authPassword;
 
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private authConfig: AuthConfig,
+    private reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

@@ -11,7 +11,7 @@ export class PostsRepository {
     await post.save();
   }
 
-  async getPostById(id: string): Promise<PostDocument> {
+  async getPostByIdOrNotFoundFail(id: string): Promise<PostDocument> {
     const post = await this.PostModel.findOne({
       _id: id,
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },

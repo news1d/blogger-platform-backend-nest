@@ -13,20 +13,28 @@ import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
 import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
 import { UsersTestManager } from './helpers/users-test-manager';
 import { CreateUserDto } from '../src/features/user-accounts/dto/create-user.dto';
+import { JwtConfig } from '../src/features/user-accounts/config/jwt.config';
+import { ACCESS_TOKEN_STRATEGY_INJECT_TOKEN } from '../src/features/user-accounts/constants/auth-tokens.inject-constants';
 
 describe('users', () => {
   let app: INestApplication;
   let userTestManger: UsersTestManager;
 
   beforeAll(async () => {
-    const result = await initSettings((moduleBuilder) =>
-      moduleBuilder.overrideProvider(JwtService).useValue(
-        new JwtService({
-          secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '2s' },
-        }),
-      ),
-    );
+    const result = await initSettings((moduleBuilder) => {
+      moduleBuilder
+        .overrideProvider(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
+        .useFactory({
+          factory: (jwtConfig: JwtConfig) => {
+            return new JwtService({
+              secret: jwtConfig.jwtSecret,
+              signOptions: { expiresIn: '2s' },
+            });
+          },
+          inject: [JwtConfig],
+        });
+    });
+
     app = result.app;
     userTestManger = result.userTestManger;
   });

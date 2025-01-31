@@ -11,7 +11,7 @@ export class PostViewDto {
   createdAt: Date;
   extendedLikesInfo: ExtendedLikesInfoDto;
 
-  static mapToView(post: PostDocument): PostViewDto {
+  static mapToView(post: PostDocument, userId?: string | null): PostViewDto {
     const dto = new PostViewDto();
 
     dto.id = post._id.toString();
@@ -21,11 +21,27 @@ export class PostViewDto {
     dto.blogId = post.blogId;
     dto.blogName = post.blogName;
     dto.createdAt = post.createdAt;
+
+    const myStatus = userId
+      ? post.likes.find((like) => like.userId === userId)?.status ||
+        LikeStatus.None
+      : LikeStatus.None;
+
+    const newestLikes = post.likes
+      .filter((like) => like.status === LikeStatus.Like)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 3)
+      .map((like) => ({
+        addedAt: like.createdAt,
+        userId: like.userId,
+        login: like.login,
+      }));
+
     dto.extendedLikesInfo = {
       likesCount: post.likesCount,
       dislikesCount: post.dislikesCount,
-      myStatus: LikeStatus.None,
-      newestLikes: [],
+      myStatus: myStatus,
+      newestLikes: newestLikes,
     };
 
     return dto;

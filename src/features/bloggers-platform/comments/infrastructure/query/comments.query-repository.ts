@@ -14,7 +14,10 @@ export class CommentsQueryRepository {
     @InjectModel(PostComment.name) private CommentModel: CommentModelType,
   ) {}
 
-  async getCommentById(id: string): Promise<CommentViewDto> {
+  async getCommentByIdOrNotFoundFail(
+    id: string,
+    userId?: string | null,
+  ): Promise<CommentViewDto> {
     const comment = await this.CommentModel.findOne({
       _id: id,
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
@@ -24,12 +27,13 @@ export class CommentsQueryRepository {
       throw new NotFoundException('Comment not found');
     }
 
-    return CommentViewDto.mapToView(comment);
+    return CommentViewDto.mapToView(comment, userId);
   }
 
   async getCommentsByPostId(
     query: GetCommentsQueryParams,
     postId: string,
+    userId?: string | null,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     const filter: FilterQuery<User> = {
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
@@ -43,7 +47,9 @@ export class CommentsQueryRepository {
 
     const totalCount = await this.CommentModel.countDocuments(filter);
 
-    const items = comments.map(CommentViewDto.mapToView);
+    const items = comments.map((comment) =>
+      CommentViewDto.mapToView(comment, userId),
+    );
 
     return PaginatedViewDto.mapToView({
       items,

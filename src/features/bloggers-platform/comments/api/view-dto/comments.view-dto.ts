@@ -8,8 +8,16 @@ export class CommentViewDto {
   createdAt: Date;
   likesInfo: LikesViewModel;
 
-  static mapToView(comment: CommentDocument): CommentViewDto {
+  static mapToView(
+    comment: CommentDocument,
+    userId?: string | null,
+  ): CommentViewDto {
     const dto = new CommentViewDto();
+
+    const myStatus = userId
+      ? comment.likes.find((like) => like.authorId === userId)?.status ||
+        LikeStatus.None
+      : LikeStatus.None;
 
     dto.id = comment._id.toString();
     dto.content = comment.content;
@@ -18,7 +26,7 @@ export class CommentViewDto {
     dto.likesInfo = {
       likesCount: comment.likesCount,
       dislikesCount: comment.dislikesCount,
-      myStatus: LikeStatus.None,
+      myStatus: myStatus,
     };
 
     return dto;

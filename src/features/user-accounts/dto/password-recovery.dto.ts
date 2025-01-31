@@ -2,7 +2,7 @@ export class PasswordRecoveryDto {
   email: string;
 }
 
-export class NewPasswordRecoveryDto {
+export class UpdatePasswordRecoveryDto {
   newPassword: string;
   recoveryCode: string;
 }
