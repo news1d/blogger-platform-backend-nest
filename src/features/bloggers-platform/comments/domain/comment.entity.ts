@@ -59,7 +59,10 @@ export class PostComment {
   static createInstance(dto: CreateCommentDomainDto): CommentDocument {
     const comment = new this();
     comment.content = dto.content;
-    comment.commentatorInfo = dto.commentatorInfo;
+    comment.commentatorInfo = {
+      userId: dto.commentatorInfo.userId,
+      userLogin: dto.commentatorInfo.userLogin,
+    };
     comment.postId = dto.postId;
 
     return comment as CommentDocument;
