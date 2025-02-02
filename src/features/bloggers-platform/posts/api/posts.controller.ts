@@ -47,8 +47,7 @@ export class PostsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: 'postId' })
-  @Get(':postId/like-status')
-  @Put()
+  @Put(':postId/like-status')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
     @Param('postId') postId: string,
