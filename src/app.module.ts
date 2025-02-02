@@ -72,6 +72,7 @@ import { UpdateLikeStatusOnPostUseCase } from './features/bloggers-platform/post
 import { UpdateLikeStatusOnCommentUseCase } from './features/bloggers-platform/comments/application/usecases/update-like-status-on-comment.usecase';
 import { UpdateCommentUseCase } from './features/bloggers-platform/comments/application/usecases/update-comment.usecase';
 import { DeleteCommentUseCase } from './features/bloggers-platform/comments/application/usecases/delete-comment.usecase';
+import { BlogIdExistsValidator } from './features/bloggers-platform/posts/application/validators/blogIdExists';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -194,6 +195,7 @@ const commentUseCases = [
     LocalStrategy,
     JwtStrategy,
     AllExceptionsFilter,
+    BlogIdExistsValidator,
     ...userUseCases,
     ...blogUseCases,
     ...postUseCases,

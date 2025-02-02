@@ -1,5 +1,31 @@
-import { registerDecorator, ValidationOptions } from 'class-validator';
-import { BlogIdExistsValidator } from './blogIdExists.validator';
+import {
+  registerDecorator,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+import { Injectable } from '@nestjs/common';
+import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
+import { Types } from 'mongoose';
+
+@ValidatorConstraint({ async: true })
+@Injectable()
+export class BlogIdExistsValidator implements ValidatorConstraintInterface {
+  constructor(private blogsRepository: BlogsRepository) {}
+
+  async validate(blogId: string): Promise<boolean> {
+    if (!Types.ObjectId.isValid(blogId)) {
+      return false;
+    }
+
+    const blog = await this.blogsRepository.getBlogById(blogId);
+    return !!blog;
+  }
+
+  defaultMessage(): string {
+    return 'BlogId was not found';
+  }
+}
 
 export function BlogIdExists(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
@@ -7,7 +33,6 @@ export function BlogIdExists(validationOptions?: ValidationOptions) {
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
-      constraints: [],
       validator: BlogIdExistsValidator,
     });
   };

@@ -24,6 +24,6 @@ export class CreatePostInputDto {
   @Trim()
   @IsNotEmpty()
   @IsString()
-  // @BlogIdExists()
+  @BlogIdExists()
   blogId: string;
 }
