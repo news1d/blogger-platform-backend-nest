@@ -41,7 +41,7 @@ export class UsersController {
   async createUser(@Body() body: CreateUserInputDto): Promise<UserViewDto> {
     const userId = await this.commandBus.execute(new CreateUserCommand(body));
 
-    return this.usersQueryRepository.getUserById(userId);
+    return this.usersQueryRepository.getUserByIdOrNotFoundFail(userId);
   }
 
   @ApiParam({ name: 'id' })
