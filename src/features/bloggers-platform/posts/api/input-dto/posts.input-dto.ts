@@ -1,5 +1,5 @@
 import { Trim } from '../../../../../core/decorators/transform/trim';
-import { IsMongoId, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { BlogIdExists } from '../../application/validators/blogIdExists';
 
 export class CreatePostInputDto {
@@ -24,7 +24,6 @@ export class CreatePostInputDto {
   @Trim()
   @IsNotEmpty()
   @IsString()
-  @IsMongoId()
-  @BlogIdExists({ message: 'Blog ID was not found.' })
+  // @BlogIdExists()
   blogId: string;
 }
