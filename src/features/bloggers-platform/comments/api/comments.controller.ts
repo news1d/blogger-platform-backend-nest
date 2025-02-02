@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -63,7 +64,7 @@ export class CommentsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: 'commentId' })
-  @Put(':commentId')
+  @Delete(':commentId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCommentById(
     @Param('commentId') commentId: string,
