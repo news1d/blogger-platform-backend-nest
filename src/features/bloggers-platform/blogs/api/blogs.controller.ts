@@ -21,7 +21,6 @@ import { UpdateBlogInputDto } from './input-dto/update-blog.input-dto';
 import { PostViewDto } from '../../posts/api/view-dto/posts.view-dto';
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts-query-params';
-import { CreatePostInputDto } from '../../posts/api/input-dto/posts.input-dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 import { UpdateBlogCommand } from '../application/usecases/update-blog.usecase';
@@ -31,6 +30,7 @@ import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth.g
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
+import { CreatePostWithoutBlogIdInputDto } from '../../posts/api/input-dto/posts-without-blogId.input-dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -85,7 +85,7 @@ export class BlogsController {
   @UseGuards(BasicAuthGuard)
   async createPostByBlogId(
     @Param('blogId') blogId: string,
-    @Body() body: Omit<CreatePostInputDto, 'blogId'>,
+    @Body() body: CreatePostWithoutBlogIdInputDto,
   ): Promise<PostViewDto> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
