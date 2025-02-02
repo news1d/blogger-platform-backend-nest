@@ -109,10 +109,15 @@ export class PostsController {
     return this.postsQueryRepository.getPostById(postId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtOptionalAuthGuard)
   @ApiParam({ name: 'id' })
   @Get(':id')
-  async getPostById(@Param('id') id: string): Promise<PostViewDto> {
-    return this.postsQueryRepository.getPostById(id);
+  async getPostById(
+    @Param('id') id: string,
+    @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
+  ): Promise<PostViewDto> {
+    return this.postsQueryRepository.getPostById(id, user?.id || null);
   }
 
   @ApiBasicAuth('basicAuth')

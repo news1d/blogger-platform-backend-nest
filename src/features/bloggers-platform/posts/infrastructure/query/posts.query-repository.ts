@@ -42,7 +42,7 @@ export class PostsQueryRepository {
     });
   }
 
-  async getPostById(id: string): Promise<PostViewDto> {
+  async getPostById(id: string, userId?: string | null): Promise<PostViewDto> {
     const post = await this.PostModel.findOne({
       _id: id,
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
@@ -52,6 +52,6 @@ export class PostsQueryRepository {
       throw new NotFoundException('Post not found');
     }
 
-    return PostViewDto.mapToView(post);
+    return PostViewDto.mapToView(post, userId);
   }
 }
