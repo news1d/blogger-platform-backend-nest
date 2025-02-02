@@ -11,7 +11,7 @@ export class BlogsRepository {
     await blog.save();
   }
 
-  async getBlogById(id: string): Promise<BlogDocument> {
+  async getBlogByIdOrNotFoundFail(id: string): Promise<BlogDocument> {
     const blog = await this.BlogModel.findOne({
       _id: id,
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
