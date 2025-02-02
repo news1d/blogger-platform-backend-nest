@@ -23,4 +23,17 @@ export class BlogsRepository {
 
     return blog;
   }
+
+  async getBlogById(id: string): Promise<BlogDocument | null> {
+    const blog = await this.BlogModel.findOne({
+      _id: id,
+      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
+    });
+
+    if (!blog) {
+      return null;
+    }
+
+    return blog;
+  }
 }
