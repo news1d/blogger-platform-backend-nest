@@ -1,5 +1,5 @@
 import { Trim } from '../../../../../core/decorators/transform/trim';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class CreatePostInputDto {
   @Trim()
@@ -23,5 +23,6 @@ export class CreatePostInputDto {
   @Trim()
   @IsNotEmpty()
   @IsString()
+  @IsMongoId()
   blogId: string;
 }
