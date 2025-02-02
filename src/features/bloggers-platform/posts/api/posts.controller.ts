@@ -93,11 +93,14 @@ export class PostsController {
     return this.commentsQueryRepository.getCommentByIdOrNotFoundFail(commentId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtOptionalAuthGuard)
   @Get()
   async getAllPosts(
     @Query() query: GetPostsQueryParams,
+    @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.postsQueryRepository.getAllPosts(query);
+    return this.postsQueryRepository.getAllPosts(query, user?.id || null);
   }
 
   @ApiBasicAuth('basicAuth')

@@ -14,8 +14,8 @@ export class PostsQueryRepository {
 
   async getAllPosts(
     query: GetPostsQueryParams,
-    blogId?: string,
     userId?: string | null,
+    blogId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     const filter: FilterQuery<User> = {
       deletionStatus: { $ne: DeletionStatus.PermanentDeleted },

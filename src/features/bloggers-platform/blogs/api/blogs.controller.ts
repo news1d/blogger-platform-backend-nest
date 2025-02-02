@@ -74,8 +74,8 @@ export class BlogsController {
     await this.blogsQueryRepository.getBlogById(blogId);
     return this.postsQueryRepository.getAllPosts(
       query,
-      blogId,
       user?.id || null,
+      blogId,
     );
   }
 
