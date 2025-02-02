@@ -85,7 +85,7 @@ export class BlogsController {
   @UseGuards(BasicAuthGuard)
   async createPostByBlogId(
     @Param('blogId') blogId: string,
-    @Body() body: CreatePostInputDto,
+    @Body() body: Omit<CreatePostInputDto, 'blogId'>,
   ): Promise<PostViewDto> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId);
 
