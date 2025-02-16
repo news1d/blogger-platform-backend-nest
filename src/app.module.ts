@@ -73,6 +73,25 @@ import { UpdateLikeStatusOnCommentUseCase } from './features/bloggers-platform/c
 import { UpdateCommentUseCase } from './features/bloggers-platform/comments/application/usecases/update-comment.usecase';
 import { DeleteCommentUseCase } from './features/bloggers-platform/comments/application/usecases/delete-comment.usecase';
 import { BlogIdExistsValidator } from './features/bloggers-platform/posts/application/validators/blogIdExists';
+import { SecurityDevicesQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.query-repository';
+import { SecurityDevicesController } from './features/user-accounts/api/security-devices.controller';
+import { RefreshTokenStrategy } from './features/user-accounts/guards/bearer/refresh-token.strategy';
+import { SecurityDevicesRepository } from './features/user-accounts/infrastructure/security-devices.repository';
+import {
+  Device,
+  DeviceSchema,
+} from './features/user-accounts/domain/device.entity';
+import { TerminateAllOtherDevicesUseCase } from './features/user-accounts/application/usecases/terminate-all-other-devices.usecase';
+import { TerminateDeviceUseCase } from './features/user-accounts/application/usecases/terminate-device.usecase';
+import { BlacklistRepository } from './features/user-accounts/infrastructure/blacklist.repository';
+import {
+  Blacklist,
+  BlacklistSchema,
+} from './features/user-accounts/domain/blacklist.entity';
+import { BlacklistQueryRepository } from './features/user-accounts/infrastructure/query/blacklist.query-repository';
+import { RefreshTokenUseCase } from './features/user-accounts/application/usecases/refresh-token.usecase';
+import { LogoutUserUseCase } from './features/user-accounts/application/usecases/logout-user.usecase';
+import { seconds, ThrottlerModule } from '@nestjs/throttler';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -83,6 +102,8 @@ const userUseCases = [
   PasswordRecoveryUseCase,
   RegistrationConfirmationUseCase,
   RegistrationEmailResendingUseCase,
+  LogoutUserUseCase,
+  RefreshTokenUseCase,
 ];
 
 const blogUseCases = [
@@ -104,6 +125,11 @@ const commentUseCases = [
   UpdateCommentUseCase,
   UpdateLikeStatusOnCommentUseCase,
   DeleteCommentUseCase,
+];
+
+const securityDevicesUseCases = [
+  TerminateAllOtherDevicesUseCase,
+  TerminateDeviceUseCase,
 ];
 
 @Module({
@@ -128,6 +154,8 @@ const commentUseCases = [
       { name: Blog.name, schema: BlogSchema },
       { name: BlogPost.name, schema: PostSchema },
       { name: PostComment.name, schema: CommentSchema },
+      { name: Device.name, schema: DeviceSchema },
+      { name: Blacklist.name, schema: BlacklistSchema },
     ]),
     MailerModule.forRootAsync({
       useFactory: (emailConfig: EmailConfig) => ({
@@ -146,6 +174,12 @@ const commentUseCases = [
       }),
       inject: [EmailConfig],
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: seconds(10),
+        limit: 5,
+      },
+    ]),
     PassportModule,
   ],
   controllers: [
@@ -156,6 +190,7 @@ const commentUseCases = [
     CommentsController,
     TestingController,
     AuthController,
+    SecurityDevicesController,
   ],
   providers: [
     {
@@ -194,12 +229,18 @@ const commentUseCases = [
     AuthQueryRepository,
     LocalStrategy,
     JwtStrategy,
+    RefreshTokenStrategy,
     AllExceptionsFilter,
     BlogIdExistsValidator,
+    SecurityDevicesQueryRepository,
+    SecurityDevicesRepository,
+    BlacklistRepository,
+    BlacklistQueryRepository,
     ...userUseCases,
     ...blogUseCases,
     ...postUseCases,
     ...commentUseCases,
+    ...securityDevicesUseCases,
   ],
 })
 export class AppModule {}
