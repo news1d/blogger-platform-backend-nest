@@ -9,7 +9,7 @@ export class BlacklistQueryRepository {
   ) {}
 
   async getToken(token: string): Promise<boolean> {
-    const result = this.BlacklistModel.findOne({ token: token });
+    const result = await this.BlacklistModel.findOne({ token: token });
     return !!result;
   }
 }
