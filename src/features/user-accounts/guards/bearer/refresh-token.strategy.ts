@@ -21,12 +21,13 @@ export class RefreshTokenStrategy extends PassportStrategy(
       ]),
       ignoreExpiration: false,
       secretOrKey: jwtConfig.refreshSecret,
+      passReqToCallback: true,
     });
   }
 
   async validate(
-    payload: UserContextDto,
     req: Request,
+    payload: UserContextDto,
   ): Promise<UserContextDto> {
     const refreshToken = req.cookies?.refreshToken;
 
