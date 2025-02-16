@@ -1,4 +1,4 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { DeletionStatus } from '../../../core/dto/deletion-status';
 import { HydratedDocument, Model } from 'mongoose';
 import { CreateDeviceDomainDto } from './dto/create-device.domain.dto';
@@ -6,6 +6,7 @@ import { CreateDeviceDomainDto } from './dto/create-device.domain.dto';
 export type DeviceDocument = HydratedDocument<Device>;
 export type DeviceModelType = Model<DeviceDocument> & typeof Device;
 
+@Schema({ timestamps: true })
 export class Device {
   @Prop({ type: String, required: true })
   userId: string;

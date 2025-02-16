@@ -1,9 +1,10 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 
 export type BlacklistDocument = HydratedDocument<Blacklist>;
 export type BlacklistModelType = Model<BlacklistDocument> & typeof Blacklist;
 
+@Schema({ timestamps: true })
 export class Blacklist {
   @Prop({ type: String, required: true })
   token: string;
