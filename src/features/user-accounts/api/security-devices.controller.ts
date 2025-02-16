@@ -13,7 +13,7 @@ import { RefreshTokenGuard } from '../guards/bearer/refresh-token-auth.guard';
 import { SecurityDevicesQueryRepository } from '../infrastructure/query/security-devices.query-repository';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../guards/dto/user-context.dto';
-import { ExtractDeviceFromRequest } from '../guards/decorators/param/extract-device-from-request.decorator';
+import { ExtractDeviceFromCookie } from '../guards/decorators/param/extract-device-from-request.decorator';
 import { DeviceContextDto } from '../guards/dto/device-context.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { TerminateAllOtherDevicesCommand } from '../application/usecases/terminate-all-other-devices.usecase';
@@ -41,7 +41,7 @@ export class SecurityDevicesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async terminateAllOtherDevices(
     @ExtractUserFromRequest() user: UserContextDto,
-    @ExtractDeviceFromRequest() device: DeviceContextDto,
+    @ExtractDeviceFromCookie() device: DeviceContextDto,
   ): Promise<void> {
     return this.commandBus.execute(
       new TerminateAllOtherDevicesCommand(user.id, device.id),

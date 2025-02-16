@@ -31,9 +31,9 @@ import { RegistrationConfirmationCommand } from '../application/usecases/registr
 import { RegistrationEmailResendingCommand } from '../application/usecases/registration-email-resending.usecase';
 import { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/bearer/refresh-token-auth.guard';
-import { ExtractDeviceFromRequest } from '../guards/decorators/param/extract-device-from-request.decorator';
+import { ExtractDeviceFromCookie } from '../guards/decorators/param/extract-device-from-request.decorator';
 import { DeviceContextDto } from '../guards/dto/device-context.dto';
-import { ExtractRefreshTokenFromRequest } from '../guards/decorators/param/extract-refresh-token-from-request.decorator';
+import { ExtractRefreshTokenFromCookie } from '../guards/decorators/param/extract-refresh-token-from-request.decorator';
 import { RefreshTokenContextDto } from '../guards/dto/refreshToken-context.dto';
 import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
 import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
@@ -83,8 +83,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshToken(
     @ExtractUserFromRequest() user: UserContextDto,
-    @ExtractDeviceFromRequest() device: DeviceContextDto,
-    @ExtractRefreshTokenFromRequest() refreshToken: RefreshTokenContextDto,
+    @ExtractDeviceFromCookie() device: DeviceContextDto,
+    @ExtractRefreshTokenFromCookie() refreshToken: RefreshTokenContextDto,
     @Res() res: Response,
   ) {
     const { newAccessToken, newRefreshToken } = await this.commandBus.execute(
@@ -147,8 +147,8 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @ExtractUserFromRequest() user: UserContextDto,
-    @ExtractDeviceFromRequest() device: DeviceContextDto,
-    @ExtractRefreshTokenFromRequest() refreshToken: RefreshTokenContextDto,
+    @ExtractDeviceFromCookie() device: DeviceContextDto,
+    @ExtractRefreshTokenFromCookie() refreshToken: RefreshTokenContextDto,
   ): Promise<void> {
     return this.commandBus.execute(
       new LogoutUserCommand(user.id, device.id, refreshToken.token),
