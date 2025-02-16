@@ -7,11 +7,12 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Req,
 } from '@nestjs/common';
 import { CreateUserInputDto, EmailInputDto } from './input-dto/users.input-dto';
 import { LocalAuthGuard } from '../guards/local/local-auth.guard';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
 import { UserContextDto } from '../guards/dto/user-context.dto';
 import { MeViewDto } from './view-dto/users.view-dto';
 import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
@@ -28,7 +29,15 @@ import { UpdatePasswordCommand } from '../application/usecases/update-password.u
 import { PasswordRecoveryCommand } from '../application/usecases/password-recovery.usecase';
 import { RegistrationConfirmationCommand } from '../application/usecases/registration-confirmation.usecase';
 import { RegistrationEmailResendingCommand } from '../application/usecases/registration-email-resending.usecase';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { RefreshTokenGuard } from '../guards/bearer/refresh-token-auth.guard';
+import { ExtractDeviceFromRequest } from '../guards/decorators/param/extract-device-from-request.decorator';
+import { DeviceContextDto } from '../guards/dto/device-context.dto';
+import { ExtractRefreshTokenFromRequest } from '../guards/decorators/param/extract-refresh-token-from-request.decorator';
+import { RefreshTokenContextDto } from '../guards/dto/refreshToken-context.dto';
+import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
+import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
+import { seconds, Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -37,6 +46,7 @@ export class AuthController {
     private commandBus: CommandBus,
   ) {}
 
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
@@ -52,10 +62,14 @@ export class AuthController {
   })
   async login(
     @ExtractUserFromRequest() user: UserContextDto,
+    @Req() req: Request,
     @Res() res: Response,
   ) {
+    const deviceName = req.headers['user-agent'] || 'Unknown Device';
+    const ip = req.ip || 'unknown';
+
     const { accessToken, refreshToken } = await this.commandBus.execute(
-      new LoginUserCommand(user.id),
+      new LoginUserCommand(user.id, deviceName, ip),
     );
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
@@ -63,6 +77,28 @@ export class AuthController {
     return res.json({ accessToken: accessToken });
   }
 
+  @ApiCookieAuth('refreshToken')
+  @UseGuards(RefreshTokenGuard)
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(
+    @ExtractUserFromRequest() user: UserContextDto,
+    @ExtractDeviceFromRequest() device: DeviceContextDto,
+    @ExtractRefreshTokenFromRequest() refreshToken: RefreshTokenContextDto,
+    @Res() res: Response,
+  ) {
+    const { newAccessToken, newRefreshToken } = await this.commandBus.execute(
+      new RefreshTokenCommand(user.id, device.id, refreshToken.token),
+    );
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
+    res.json({ accessToken: newAccessToken });
+  }
+
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(
@@ -71,12 +107,14 @@ export class AuthController {
     return this.commandBus.execute(new PasswordRecoveryCommand(body));
   }
 
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() body: NewPasswordRecoveryInputDto): Promise<void> {
     return this.commandBus.execute(new UpdatePasswordCommand(body));
   }
 
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(
@@ -87,17 +125,33 @@ export class AuthController {
     );
   }
 
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() body: CreateUserInputDto): Promise<void> {
     return this.commandBus.execute(new RegisterUserCommand(body));
   }
 
+  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailInputDto): Promise<void> {
     return this.commandBus.execute(
       new RegistrationEmailResendingCommand(body.email),
+    );
+  }
+
+  @ApiCookieAuth('refreshToken')
+  @UseGuards(RefreshTokenGuard)
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(
+    @ExtractUserFromRequest() user: UserContextDto,
+    @ExtractDeviceFromRequest() device: DeviceContextDto,
+    @ExtractRefreshTokenFromRequest() refreshToken: RefreshTokenContextDto,
+  ): Promise<void> {
+    return this.commandBus.execute(
+      new LogoutUserCommand(user.id, device.id, refreshToken.token),
     );
   }
 
