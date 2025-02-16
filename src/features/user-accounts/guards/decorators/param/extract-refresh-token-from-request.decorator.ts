@@ -1,17 +1,16 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { RefreshTokenContextDto } from '../../dto/refreshToken-context.dto';
 
-export const ExtractRefreshTokenFromRequest = createParamDecorator(
+export const ExtractRefreshTokenFromCookie = createParamDecorator(
   (data: unknown, context: ExecutionContext): RefreshTokenContextDto => {
     const request = context.switchToHttp().getRequest();
 
-    const authHeader = request.get('Authorization');
-    if (!authHeader) {
-      throw new Error('there is no authHeader in the request object!');
+    const refreshToken = request.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error('Refresh token is missing in cookies!');
     }
 
-    const refreshToken = authHeader.replace('Bearer', '').trim();
-
-    return refreshToken;
+    return { token: refreshToken };
   },
 );
