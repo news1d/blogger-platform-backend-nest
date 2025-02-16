@@ -3,7 +3,7 @@ import { DeviceDocument } from '../../domain/device.entity';
 export class DeviceViewDto {
   ip: string;
   title: string;
-  lastActivate: Date;
+  lastActiveDate: Date;
   deviceId: string;
 
   static mapToView(device: DeviceDocument): DeviceViewDto {
@@ -11,7 +11,7 @@ export class DeviceViewDto {
 
     dto.ip = device.ip;
     dto.title = device.deviceName;
-    dto.lastActivate = device.expiresAt;
+    dto.lastActiveDate = device.expiresAt;
     dto.deviceId = device.deviceId;
 
     return dto;
