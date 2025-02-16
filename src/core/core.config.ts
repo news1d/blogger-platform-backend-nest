@@ -12,7 +12,7 @@ export class CoreConfig {
   })
   mongoURI: string = this.configService.get('MONGO_URI');
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }

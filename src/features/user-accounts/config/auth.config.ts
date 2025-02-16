@@ -15,7 +15,7 @@ export class AuthConfig {
   })
   authPassword: string = this.configService.get('BASIC_AUTH_PASSWORD');
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }

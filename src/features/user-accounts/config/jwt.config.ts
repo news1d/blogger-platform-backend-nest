@@ -15,7 +15,7 @@ export class JwtConfig {
   })
   refreshSecret: string = this.configService.get('REFRESH_SECRET');
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }

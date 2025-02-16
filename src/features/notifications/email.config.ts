@@ -16,7 +16,7 @@ export class EmailConfig {
   })
   emailPassword: string = this.configService.get('PASSWORD');
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }
