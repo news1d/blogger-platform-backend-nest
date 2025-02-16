@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { UserContextDto } from '../guards/dto/user-context.dto';
 import { CryptoService } from './crypto.service';
+import { RefreshTokenDataDto } from '../dto/refresh-token-data.dto';
+import jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -29,5 +31,26 @@ export class AuthService {
     }
 
     return { id: user.id.toString() };
+  }
+
+  async getRefreshTokenData(
+    refreshToken: string,
+  ): Promise<RefreshTokenDataDto> {
+    try {
+      const decoded: any = jwt.decode(refreshToken);
+
+      if (!decoded) {
+        throw new Error('Invalid or malformed refresh token');
+      }
+
+      return {
+        deviceId: decoded.deviceId,
+        issuedAt: new Date(decoded.iat * 1000),
+        expiresAt: new Date(decoded.exp * 1000),
+      };
+    } catch (error) {
+      console.error('Error decoding refresh token:', error);
+      throw new Error('Error decoding refresh token');
+    }
   }
 }
