@@ -37,7 +37,7 @@ import { ExtractRefreshTokenFromCookie } from '../guards/decorators/param/extrac
 import { RefreshTokenContextDto } from '../guards/dto/refreshToken-context.dto';
 import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
 import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
-import { seconds, Throttle } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -46,7 +46,6 @@ export class AuthController {
     private commandBus: CommandBus,
   ) {}
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
@@ -77,6 +76,7 @@ export class AuthController {
     return res.json({ accessToken: accessToken });
   }
 
+  @SkipThrottle()
   @ApiCookieAuth('refreshToken')
   @UseGuards(RefreshTokenGuard)
   @Post('refresh-token')
@@ -98,7 +98,6 @@ export class AuthController {
     res.json({ accessToken: newAccessToken });
   }
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(
@@ -107,14 +106,12 @@ export class AuthController {
     return this.commandBus.execute(new PasswordRecoveryCommand(body));
   }
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() body: NewPasswordRecoveryInputDto): Promise<void> {
     return this.commandBus.execute(new UpdatePasswordCommand(body));
   }
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(
@@ -125,14 +122,12 @@ export class AuthController {
     );
   }
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() body: CreateUserInputDto): Promise<void> {
     return this.commandBus.execute(new RegisterUserCommand(body));
   }
 
-  @Throttle({ default: { limit: 5, ttl: seconds(10) } })
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailInputDto): Promise<void> {
@@ -141,6 +136,7 @@ export class AuthController {
     );
   }
 
+  @SkipThrottle()
   @ApiCookieAuth('refreshToken')
   @UseGuards(RefreshTokenGuard)
   @Post('logout')
@@ -155,6 +151,7 @@ export class AuthController {
     );
   }
 
+  @SkipThrottle()
   @ApiBearerAuth()
   @Get('me')
   @UseGuards(JwtAuthGuard)

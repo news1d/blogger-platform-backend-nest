@@ -20,7 +20,9 @@ import { BasicAuthGuard } from '../guards/basic/basic-auth.guard';
 import { CreateUserCommand } from '../application/usecases/create-user.usecase';
 import { DeleteUserCommand } from '../application/usecases/delete-user.usecase';
 import { CommandBus } from '@nestjs/cqrs';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('users')
 @UseGuards(BasicAuthGuard)
 @ApiBasicAuth('basicAuth')

@@ -31,7 +31,9 @@ import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-o
 import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
 import { CreatePostWithoutBlogIdInputDto } from '../../posts/api/input-dto/posts-without-blogId.input-dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
   constructor(

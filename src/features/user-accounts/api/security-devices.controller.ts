@@ -18,7 +18,9 @@ import { DeviceContextDto } from '../guards/dto/device-context.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { TerminateAllOtherDevicesCommand } from '../application/usecases/terminate-all-other-devices.usecase';
 import { TerminateDeviceCommand } from '../application/usecases/terminate-device.usecase';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('security/devices')
 export class SecurityDevicesController {
   constructor(

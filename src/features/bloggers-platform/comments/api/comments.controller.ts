@@ -23,7 +23,9 @@ import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/de
 import { UpdateLikeStatusInputDto } from '../../posts/api/input-dto/update-like-status.input-dto';
 import { UpdateLikeStatusOnCommentCommand } from '../application/usecases/update-like-status-on-comment.usecase';
 import { DeleteCommentCommand } from '../application/usecases/delete-comment.usecase';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('comments')
 export class CommentsController {
   constructor(
