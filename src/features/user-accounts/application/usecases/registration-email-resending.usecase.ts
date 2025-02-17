@@ -39,8 +39,6 @@ export class RegistrationEmailResendingUseCase
     user.setEmailConfirmationCode(confirmCode);
     await this.usersRepository.save(user);
 
-    this.emailService
-      .sendConfirmationEmail(user.email, confirmCode)
-      .catch(console.error);
+    this.emailService.sendConfirmationEmail(user.email, confirmCode);
   }
 }

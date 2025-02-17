@@ -5,8 +5,8 @@ import { Injectable } from '@nestjs/common';
 export class EmailService {
   constructor(private mailerService: MailerService) {}
 
-  async sendConfirmationEmail(email: string, code: string): Promise<void> {
-    await this.mailerService.sendMail({
+  sendConfirmationEmail(email: string, code: string) {
+    this.mailerService.sendMail({
       to: email,
       subject: 'Confirm your registration',
       html: ` <h1>Welcome to PreTurboRich Lobby!</h1>
@@ -16,8 +16,8 @@ export class EmailService {
     });
   }
 
-  async sendPasswordRecoveryEmail(email: string, code: string): Promise<void> {
-    await this.mailerService.sendMail({
+  sendPasswordRecoveryEmail(email: string, code: string) {
+    this.mailerService.sendMail({
       to: email,
       subject: 'Password recovery',
       html: ` <h1>Password recovery</h1>

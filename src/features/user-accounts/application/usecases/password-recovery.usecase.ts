@@ -26,8 +26,6 @@ export class PasswordRecoveryUseCase {
     user.setPasswordRecoveryCode(confirmCode);
     await this.usersRepository.save(user);
 
-    await this.emailService
-      .sendPasswordRecoveryEmail(user.email, confirmCode)
-      .catch(console.error);
+    this.emailService.sendPasswordRecoveryEmail(user.email, confirmCode);
   }
 }
