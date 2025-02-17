@@ -197,7 +197,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.jwtSecret,
-          signOptions: { expiresIn: '2m' },
+          signOptions: { expiresIn: '10s' },
         });
       },
       inject: [JwtConfig],
@@ -207,7 +207,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.refreshSecret,
-          signOptions: { expiresIn: '10m' },
+          signOptions: { expiresIn: '20s' },
         });
       },
       inject: [JwtConfig],
