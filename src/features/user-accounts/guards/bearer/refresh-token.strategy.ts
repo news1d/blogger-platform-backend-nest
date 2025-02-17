@@ -43,11 +43,9 @@ export class RefreshTokenStrategy extends PassportStrategy(
     }
 
     const tokenData = await this.authService.getRefreshTokenData(refreshToken);
-    const device =
-      await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
-        user.id,
-        tokenData.deviceId,
-      );
+    const device = await this.securityDevicesRepository.getDeviceById(
+      tokenData.deviceId,
+    );
 
     if (!device) {
       throw new UnauthorizedException('Device not found');

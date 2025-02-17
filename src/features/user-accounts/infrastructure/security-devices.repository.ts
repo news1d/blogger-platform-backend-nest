@@ -49,4 +49,11 @@ export class SecurityDevicesRepository {
 
     return device;
   }
+
+  async getDeviceById(deviceId: string): Promise<DeviceDocument | null> {
+    return this.DeviceModel.findOne({
+      deviceId: deviceId,
+      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
+    });
+  }
 }
