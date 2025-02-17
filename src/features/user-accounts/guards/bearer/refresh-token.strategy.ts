@@ -4,7 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { JwtConfig } from '../../config/jwt.config';
 import { UserContextDto } from '../dto/user-context.dto';
-import { BlacklistQueryRepository } from '../../infrastructure/query/blacklist.query-repository';
+import { AuthService } from '../../application/auth.service';
+import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
+import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -13,7 +15,9 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private jwtConfig: JwtConfig,
-    private blacklistQueryRepository: BlacklistQueryRepository,
+    private blacklistRepository: BlacklistRepository,
+    private authService: AuthService,
+    private securityDevicesRepository: SecurityDevicesRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -25,23 +29,30 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(
-    req: Request,
-    payload: UserContextDto,
-  ): Promise<UserContextDto> {
+  async validate(req: Request, user: UserContextDto): Promise<UserContextDto> {
     const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing');
     }
 
-    const isBlacklisted =
-      await this.blacklistQueryRepository.getToken(refreshToken);
+    const isBlacklisted = await this.blacklistRepository.getToken(refreshToken);
 
     if (isBlacklisted) {
       throw new UnauthorizedException('Refresh token is invalid');
     }
 
-    return payload;
+    const tokenData = await this.authService.getRefreshTokenData(refreshToken);
+    const device =
+      await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
+        user.id,
+        tokenData.deviceId,
+      );
+
+    if (!device) {
+      throw new UnauthorizedException('Device not found');
+    }
+
+    return user;
   }
 }
