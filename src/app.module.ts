@@ -88,7 +88,6 @@ import {
   Blacklist,
   BlacklistSchema,
 } from './features/user-accounts/domain/blacklist.entity';
-import { BlacklistQueryRepository } from './features/user-accounts/infrastructure/query/blacklist.query-repository';
 import { RefreshTokenUseCase } from './features/user-accounts/application/usecases/refresh-token.usecase';
 import { LogoutUserUseCase } from './features/user-accounts/application/usecases/logout-user.usecase';
 import { seconds, ThrottlerModule } from '@nestjs/throttler';
@@ -198,7 +197,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.jwtSecret,
-          signOptions: { expiresIn: '10s' },
+          signOptions: { expiresIn: '2m' },
         });
       },
       inject: [JwtConfig],
@@ -208,7 +207,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.refreshSecret,
-          signOptions: { expiresIn: '20s' },
+          signOptions: { expiresIn: '10m' },
         });
       },
       inject: [JwtConfig],
@@ -235,7 +234,6 @@ const securityDevicesUseCases = [
     SecurityDevicesQueryRepository,
     SecurityDevicesRepository,
     BlacklistRepository,
-    BlacklistQueryRepository,
     ...userUseCases,
     ...blogUseCases,
     ...postUseCases,
