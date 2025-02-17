@@ -39,7 +39,7 @@ export class SecurityDevicesRepository {
     }
 
     if (userId != device.userId) {
-      throw new ForbiddenException(`Trying to delete another user's device`);
+      throw new ForbiddenException(`Trying to get another user's device`);
     }
 
     return device;

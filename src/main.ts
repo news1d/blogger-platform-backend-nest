@@ -11,6 +11,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors();
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   appSetup(app);
   await app.listen(appConfig.port);
 }
