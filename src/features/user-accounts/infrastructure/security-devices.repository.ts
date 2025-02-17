@@ -9,6 +9,7 @@ import {
   DeviceModelType,
 } from '../domain/device.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { DeletionStatus } from '../../../core/dto/deletion-status';
 
 @Injectable()
 export class SecurityDevicesRepository {
@@ -25,6 +26,7 @@ export class SecurityDevicesRepository {
     return this.DeviceModel.find({
       userId,
       deviceId: { $ne: deviceId },
+      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
     });
   }
 
@@ -32,7 +34,10 @@ export class SecurityDevicesRepository {
     userId: string,
     deviceId: string,
   ): Promise<DeviceDocument> {
-    const device = await this.DeviceModel.findOne({ deviceId: deviceId });
+    const device = await this.DeviceModel.findOne({
+      deviceId: deviceId,
+      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
+    });
 
     if (!device) {
       throw new NotFoundException('Device not found');
