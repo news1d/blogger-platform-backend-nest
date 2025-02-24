@@ -147,10 +147,7 @@ const securityDevicesUseCases = [
       inject: [CoreConfig],
     }),
     MongooseModule.forFeature([
-      {
-        name: User.name,
-        schema: UserSchema,
-      },
+      { name: User.name, schema: UserSchema },
       { name: Blog.name, schema: BlogSchema },
       { name: BlogPost.name, schema: PostSchema },
       { name: PostComment.name, schema: CommentSchema },
