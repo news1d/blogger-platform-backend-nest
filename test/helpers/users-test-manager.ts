@@ -7,18 +7,32 @@ import {
   MeViewDto,
   UserViewDto,
 } from '../../src/features/user-accounts/api/view-dto/users.view-dto';
+import { AuthConfig } from '../../src/features/user-accounts/config/auth.config';
+import { CreateUserDto } from '../../src/features/user-accounts/dto/create-user.dto';
 
 export class UsersTestManager {
-  constructor(private app: INestApplication) {}
+  constructor(
+    private app: INestApplication,
+    private authConfig: AuthConfig,
+  ) {}
+
+  authUsername = this.authConfig.authUsername;
+  authPassword = this.authConfig.authPassword;
+
+  userData: CreateUserDto = {
+    login: 'login',
+    password: 'qwerty',
+    email: 'email@email.em',
+  };
 
   async createUser(
-    createModel: CreateUserInputDto,
+    createModel: CreateUserInputDto = this.userData,
     statusCode: number = HttpStatus.CREATED,
   ): Promise<UserViewDto> {
     const response = await request(this.app.getHttpServer())
       .post(`/${GLOBAL_PREFIX}/users`)
       .send(createModel)
-      .auth('admin', 'qwerty')
+      .auth(this.authUsername, this.authPassword)
       .expect(statusCode);
 
     return response.body;
@@ -77,5 +91,18 @@ export class UsersTestManager {
     );
 
     return await Promise.all(loginPromises);
+  }
+
+  extractRefreshToken(response: any): string {
+    const cookies = response.headers['set-cookie'] as string[];
+    const refreshTokenCookie = cookies.find((cookie) =>
+      cookie.includes('refreshToken='),
+    );
+
+    if (!refreshTokenCookie) {
+      throw new Error('Refresh token cookie not found');
+    }
+
+    return refreshTokenCookie.split(';')[0].split('=')[1];
   }
 }
