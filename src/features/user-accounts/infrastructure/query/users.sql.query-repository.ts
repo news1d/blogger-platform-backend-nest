@@ -29,13 +29,17 @@ export class UsersSqlQueryRepository {
 
     if (query.searchEmailTerm) {
       params.push(`%${query.searchEmailTerm}%`);
-      whereClause += ` AND "Email" ILIKE $${params.length}`;
+      if (params.length > 1) {
+        whereClause += ` OR "Email" ILIKE $${params.length}`; // Если есть оба фильтра, добавляем OR
+      } else {
+        whereClause += ` AND "Email" ILIKE $${params.length}`; // Если фильтруем только по email, используем AND
+      }
     }
 
     const users = await this.dataSource.query(
       `SELECT * FROM "Users"
        WHERE ${whereClause}
-       ORDER BY "${sortBy}" ${sortDirection} 
+       ORDER BY "${sortBy}" ${sortDirection}
        LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, limit, offset],
     );
