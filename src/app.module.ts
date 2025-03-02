@@ -195,10 +195,10 @@ const securityDevicesUseCases = [
       inject: [EmailConfig],
     }),
     ThrottlerModule.forRoot([
-      {
-        ttl: seconds(10),
-        limit: 5,
-      },
+      // {
+      //   ttl: seconds(10),
+      //   limit: 5,
+      // },
     ]),
     PassportModule,
   ],
@@ -218,7 +218,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.jwtSecret,
-          signOptions: { expiresIn: '10s' },
+          signOptions: { expiresIn: '5m' },
         });
       },
       inject: [JwtConfig],
