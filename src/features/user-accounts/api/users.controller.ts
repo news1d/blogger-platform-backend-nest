@@ -24,7 +24,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { UsersSqlQueryRepository } from '../infrastructure/query/users.sql.query-repository';
 
 @SkipThrottle()
-@Controller('users')
+@Controller('sa/users')
 @UseGuards(BasicAuthGuard)
 @ApiBasicAuth('basicAuth')
 export class UsersController {
