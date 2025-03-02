@@ -83,7 +83,7 @@ describe('users', () => {
     await usersTestManager.createUser(firstUser);
 
     await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/users`)
+      .post(`/${GLOBAL_PREFIX}/sa/users`)
       .send(secondUser)
       .auth(usersTestManager.authUsername, usersTestManager.authPassword)
       .expect(HttpStatus.BAD_REQUEST, {
@@ -111,7 +111,7 @@ describe('users', () => {
     await usersTestManager.createUser(firstUser);
 
     await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/users`)
+      .post(`/${GLOBAL_PREFIX}/sa/users`)
       .send(secondUser)
       .auth(usersTestManager.authUsername, usersTestManager.authPassword)
       .expect(HttpStatus.BAD_REQUEST, {
@@ -128,7 +128,7 @@ describe('users', () => {
     const users = await usersTestManager.createSeveralUsers(9);
     const { body: responseBody } = (await request(app.getHttpServer())
       .get(
-        `/${GLOBAL_PREFIX}/users?pageSize=5&pageNumber=2&sortDirection=asc&sortBy=login`,
+        `/${GLOBAL_PREFIX}/sa/users?pageSize=5&pageNumber=2&sortDirection=asc&sortBy=login`,
       )
       .auth(usersTestManager.authUsername, usersTestManager.authPassword)
       .expect(HttpStatus.OK)) as { body: PaginatedViewDto<UserViewDto> };
@@ -142,15 +142,15 @@ describe('users', () => {
 
   it('unauthorized user shouldn`t get/create/delete blog', async () => {
     await request(app.getHttpServer())
-      .get(`/${GLOBAL_PREFIX}/users/`)
+      .get(`/${GLOBAL_PREFIX}/sa/users/`)
       .expect(HttpStatus.UNAUTHORIZED);
 
     await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/users/`)
+      .post(`/${GLOBAL_PREFIX}/sa/users/`)
       .expect(HttpStatus.UNAUTHORIZED);
 
     await request(app.getHttpServer())
-      .delete(`/${GLOBAL_PREFIX}/users/1`)
+      .delete(`/${GLOBAL_PREFIX}/sa/users/1`)
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
@@ -164,7 +164,7 @@ describe('users', () => {
     const user = await usersTestManager.createUser(body);
 
     await request(app.getHttpServer())
-      .delete(`/${GLOBAL_PREFIX}/users/${user.id}`)
+      .delete(`/${GLOBAL_PREFIX}/sa/users/${user.id}`)
       .auth(usersTestManager.authUsername, usersTestManager.authPassword)
       .expect(HttpStatus.NO_CONTENT);
   });
