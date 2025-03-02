@@ -19,12 +19,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { TerminateAllOtherDevicesCommand } from '../application/usecases/terminate-all-other-devices.usecase';
 import { TerminateDeviceCommand } from '../application/usecases/terminate-device.usecase';
 import { SkipThrottle } from '@nestjs/throttler';
+import { SecurityDevicesSqlQueryRepository } from '../infrastructure/query/security-devices.sql.query-repository';
 
 @SkipThrottle()
 @Controller('security/devices')
 export class SecurityDevicesController {
   constructor(
-    private securityDevicesQueryRepository: SecurityDevicesQueryRepository,
+    private securityDevicesQueryRepository: SecurityDevicesSqlQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

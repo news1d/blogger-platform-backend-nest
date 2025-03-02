@@ -7,6 +7,8 @@ import { UserContextDto } from '../dto/user-context.dto';
 import { AuthService } from '../../application/auth.service';
 import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
+import { BlacklistSqlRepository } from '../../infrastructure/blacklist.sql.repository';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -15,9 +17,9 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private jwtConfig: JwtConfig,
-    private blacklistRepository: BlacklistRepository,
+    private blacklistRepository: BlacklistSqlRepository,
     private authService: AuthService,
-    private securityDevicesRepository: SecurityDevicesRepository,
+    private securityDevicesRepository: SecurityDevicesSqlRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -43,6 +45,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     }
 
     const tokenData = await this.authService.getRefreshTokenData(refreshToken);
+
     const device = await this.securityDevicesRepository.getDeviceById(
       tokenData.deviceId,
     );

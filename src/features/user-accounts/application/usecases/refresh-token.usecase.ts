@@ -10,6 +10,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { BlacklistSqlRepository } from '../../infrastructure/blacklist.sql.repository';
+import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class RefreshTokenCommand {
   constructor(
@@ -29,9 +31,9 @@ export class RefreshTokenUseCase
     private accessTokenContext: JwtService,
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
     private refreshTokenContext: JwtService,
-    private blacklistRepository: BlacklistRepository,
+    private blacklistRepository: BlacklistSqlRepository,
     private authService: AuthService,
-    private securityDevicesRepository: SecurityDevicesRepository,
+    private securityDevicesRepository: SecurityDevicesSqlRepository,
   ) {}
 
   async execute({
@@ -42,10 +44,10 @@ export class RefreshTokenUseCase
     newAccessToken: string;
     newRefreshToken: string;
   }> {
-    const blacklistedRefreshToken =
-      this.BlacklistModel.createInstance(refreshToken);
+    // const blacklistedRefreshToken =
+    //   this.BlacklistModel.createInstance(refreshToken);
 
-    await this.blacklistRepository.save(blacklistedRefreshToken);
+    await this.blacklistRepository.addToken(refreshToken);
 
     const newAccessToken = this.accessTokenContext.sign({
       id: userId,
@@ -65,9 +67,13 @@ export class RefreshTokenUseCase
         deviceId,
       );
 
-    device.updateTokenData(tokenData.issuedAt, tokenData.expiresAt);
+    // device.updateTokenData(tokenData.issuedAt, tokenData.expiresAt);
 
-    await this.securityDevicesRepository.save(device);
+    await this.securityDevicesRepository.updateTokenData(
+      deviceId,
+      tokenData.issuedAt,
+      tokenData.expiresAt,
+    );
 
     return { newAccessToken, newRefreshToken };
   }

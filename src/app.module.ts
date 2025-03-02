@@ -92,6 +92,13 @@ import { RefreshTokenUseCase } from './features/user-accounts/application/usecas
 import { LogoutUserUseCase } from './features/user-accounts/application/usecases/logout-user.usecase';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersSqlRepository } from './features/user-accounts/infrastructure/users.sql.repository';
+import { UsersSqlQueryRepository } from './features/user-accounts/infrastructure/query/users.sql.query-repository';
+import { TestingRepository } from './testing/infrastructure/testing.repository';
+import { SecurityDevicesSqlQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.sql.query-repository';
+import { SecurityDevicesSqlRepository } from './features/user-accounts/infrastructure/security-devices.sql.repository';
+import { BlacklistSqlRepository } from './features/user-accounts/infrastructure/blacklist.sql.repository';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -140,6 +147,22 @@ const securityDevicesUseCases = [
     UserModule,
     CqrsModule,
     JwtModule,
+    TypeOrmModule.forRootAsync({
+      useFactory: (coreConfig: CoreConfig) => {
+        return {
+          type: 'postgres',
+          host: coreConfig.dbHost,
+          port: coreConfig.dbPort,
+          username: coreConfig.dbUser,
+          password: coreConfig.dbPassword,
+          database: coreConfig.dbName,
+          ssl: true,
+          autoLoadEntities: false,
+          synchronize: false,
+        };
+      },
+      inject: [CoreConfig],
+    }),
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
         return { uri: coreConfig.mongoURI };
@@ -216,13 +239,16 @@ const securityDevicesUseCases = [
     },
     AppService,
     UsersRepository,
+    UsersSqlRepository,
     UsersQueryRepository,
+    UsersSqlQueryRepository,
     BlogsRepository,
     BlogsQueryRepository,
     PostsRepository,
     PostsQueryRepository,
     CommentsRepository,
     CommentsQueryRepository,
+    TestingRepository,
     TestingService,
     CryptoService,
     EmailService,
@@ -234,8 +260,11 @@ const securityDevicesUseCases = [
     AllExceptionsFilter,
     BlogIdExistsValidator,
     SecurityDevicesQueryRepository,
+    SecurityDevicesSqlQueryRepository,
     SecurityDevicesRepository,
+    SecurityDevicesSqlRepository,
     BlacklistRepository,
+    BlacklistSqlRepository,
     ...userUseCases,
     ...blogUseCases,
     ...postUseCases,

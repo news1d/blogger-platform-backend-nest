@@ -10,6 +10,7 @@ import { Device, DeviceModelType } from '../../domain/device.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { AuthService } from '../auth.service';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class LoginUserCommand {
   constructor(
@@ -28,7 +29,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
     private refreshTokenContext: JwtService,
     private authService: AuthService,
-    private securityDevicesRepository: SecurityDevicesRepository,
+    private securityDevicesRepository: SecurityDevicesSqlRepository,
   ) {}
 
   async execute({
@@ -48,7 +49,16 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
 
     const tokenData = await this.authService.getRefreshTokenData(refreshToken);
 
-    const device = this.DeviceModel.createInstance({
+    // const device = this.DeviceModel.createInstance({
+    //   userId: userId,
+    //   deviceId: tokenData.deviceId,
+    //   issuedAt: tokenData.issuedAt,
+    //   deviceName: deviceName,
+    //   ip: ip,
+    //   expiresAt: tokenData.expiresAt,
+    // });
+
+    await this.securityDevicesRepository.createDevice({
       userId: userId,
       deviceId: tokenData.deviceId,
       issuedAt: tokenData.issuedAt,
@@ -56,8 +66,6 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       ip: ip,
       expiresAt: tokenData.expiresAt,
     });
-
-    await this.securityDevicesRepository.save(device);
 
     return {
       accessToken,

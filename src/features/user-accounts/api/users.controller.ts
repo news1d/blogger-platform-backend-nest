@@ -21,6 +21,7 @@ import { CreateUserCommand } from '../application/usecases/create-user.usecase';
 import { DeleteUserCommand } from '../application/usecases/delete-user.usecase';
 import { CommandBus } from '@nestjs/cqrs';
 import { SkipThrottle } from '@nestjs/throttler';
+import { UsersSqlQueryRepository } from '../infrastructure/query/users.sql.query-repository';
 
 @SkipThrottle()
 @Controller('users')
@@ -28,7 +29,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 @ApiBasicAuth('basicAuth')
 export class UsersController {
   constructor(
-    private usersQueryRepository: UsersQueryRepository,
+    private usersQueryRepository: UsersSqlQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

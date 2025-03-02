@@ -1,20 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Connection } from 'mongoose';
-import { getConnectionToken } from '@nestjs/mongoose';
+import { Injectable } from '@nestjs/common';
+import { TestingRepository } from '../infrastructure/testing.repository';
 
 @Injectable()
 export class TestingService {
-  constructor(
-    @Inject(getConnectionToken()) private readonly connection: Connection, // Инжектим Connection
-  ) {}
+  constructor(private testingRepository: TestingRepository) {}
 
   async clearDB(): Promise<void> {
-    const collections = this.connection.collections;
-
-    for (const key in collections) {
-      if (collections.hasOwnProperty(key)) {
-        await collections[key].deleteMany({});
-      }
-    }
+    return this.testingRepository.clearDB();
   }
 }

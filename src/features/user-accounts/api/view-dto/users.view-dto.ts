@@ -7,13 +7,13 @@ export class UserViewDto {
   email: string;
   createdAt: Date;
 
-  static mapToView(user: UserDocument): UserViewDto {
+  static mapToView(user): UserViewDto {
     const dto = new UserViewDto();
 
-    dto.email = user.email;
-    dto.login = user.login;
-    dto.id = user._id.toString();
-    dto.createdAt = user.createdAt;
+    dto.email = user.Email;
+    dto.login = user.Login;
+    dto.id = user.Id.toString();
+    dto.createdAt = user.CreatedAt;
 
     return dto;
   }
@@ -25,12 +25,12 @@ export class MeViewDto extends OmitType(UserViewDto, [
 ] as const) {
   userId: string;
 
-  static mapToView(user: UserDocument): MeViewDto {
+  static mapToView(user): MeViewDto {
     const dto = new MeViewDto();
 
-    dto.email = user.email;
-    dto.login = user.login;
-    dto.userId = user._id.toString();
+    dto.email = user.Email;
+    dto.login = user.Login;
+    dto.userId = user.Id.toString();
 
     return dto;
   }

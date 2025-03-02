@@ -6,13 +6,13 @@ export class DeviceViewDto {
   lastActiveDate: Date;
   deviceId: string;
 
-  static mapToView(device: DeviceDocument): DeviceViewDto {
+  static mapToView(device): DeviceViewDto {
     const dto = new DeviceViewDto();
 
-    dto.ip = device.ip;
-    dto.title = device.deviceName;
-    dto.lastActiveDate = device.expiresAt;
-    dto.deviceId = device.deviceId;
+    dto.ip = device.Ip;
+    dto.title = device.DeviceName;
+    dto.lastActiveDate = device.IssuedAt;
+    dto.deviceId = device.DeviceId;
 
     return dto;
   }

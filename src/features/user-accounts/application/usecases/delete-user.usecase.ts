@@ -1,5 +1,6 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
 
 export class DeleteUserCommand {
   constructor(public id: string) {}
@@ -7,13 +8,12 @@ export class DeleteUserCommand {
 
 @CommandHandler(DeleteUserCommand)
 export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand> {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: UsersSqlRepository) {}
 
   async execute({ id }: DeleteUserCommand): Promise<void> {
-    const user = await this.usersRepository.getUserByIdOrNotFoundFail(id);
+    await this.usersRepository.getUserByIdOrNotFoundFail(id);
+    await this.usersRepository.makeDeleted(id);
 
-    user.makeDeleted();
-
-    await this.usersRepository.save(user);
+    // await this.usersRepository.save(user);
   }
 }

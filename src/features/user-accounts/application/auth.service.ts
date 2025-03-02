@@ -4,11 +4,12 @@ import { UserContextDto } from '../guards/dto/user-context.dto';
 import { CryptoService } from './crypto.service';
 import { RefreshTokenDataDto } from '../dto/refresh-token-data.dto';
 import jwt from 'jsonwebtoken';
+import { UsersSqlRepository } from '../infrastructure/users.sql.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private cryptoService: CryptoService,
   ) {}
   async validateUser(
@@ -23,14 +24,14 @@ export class AuthService {
 
     const isPasswordValid = await this.cryptoService.comparePasswords({
       password,
-      hash: user.passwordHash,
+      hash: user.PasswordHash,
     });
 
     if (!isPasswordValid) {
       return null;
     }
 
-    return { id: user.id.toString() };
+    return { id: user.Id.toString() };
   }
 
   async getRefreshTokenData(

@@ -1,4 +1,4 @@
 export enum DeletionStatus {
-  NotDeleted = 'not-deleted',
-  PermanentDeleted = 'permanent-deleted',
+  NotDeleted = 'NotDeleted',
+  PermanentDeleted = 'PermanentDeleted',
 }

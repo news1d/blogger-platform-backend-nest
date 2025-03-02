@@ -3,6 +3,7 @@ import { BadRequestDomainException } from '../../../../core/exceptions/domain-ex
 import { randomUUID } from 'crypto';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { EmailService } from '../../../notifications/email.service';
+import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
 
 export class RegistrationEmailResendingCommand {
   constructor(public email: string) {}
@@ -13,7 +14,7 @@ export class RegistrationEmailResendingUseCase
   implements ICommandHandler<RegistrationEmailResendingCommand>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private emailService: EmailService,
   ) {}
 
@@ -27,7 +28,7 @@ export class RegistrationEmailResendingUseCase
       );
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.IsEmailConfirmed) {
       throw BadRequestDomainException.create(
         'Email is already confirmed',
         'email',
@@ -36,9 +37,9 @@ export class RegistrationEmailResendingUseCase
 
     const confirmCode = randomUUID().toString();
 
-    user.setEmailConfirmationCode(confirmCode);
-    await this.usersRepository.save(user);
+    // user.setEmailConfirmationCode(confirmCode);
+    await this.usersRepository.setEmailConfirmationCode(user.Id, confirmCode);
 
-    this.emailService.sendConfirmationEmail(user.email, confirmCode);
+    this.emailService.sendConfirmationEmail(user.Email, confirmCode);
   }
 }

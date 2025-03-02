@@ -3,6 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { CryptoService } from '../crypto.service';
+import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
 
 export class UpdatePasswordCommand {
   constructor(public dto: UpdatePasswordRecoveryDto) {}
@@ -13,7 +14,7 @@ export class UpdatePasswordUseCase
   implements ICommandHandler<UpdatePasswordCommand>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private cryptoService: CryptoService,
   ) {}
 
@@ -22,14 +23,14 @@ export class UpdatePasswordUseCase
       dto.recoveryCode,
     );
 
-    if (!user || user.passwordRecovery.recoveryCode !== dto.recoveryCode) {
+    if (!user || user.PasswordRecoveryCode !== dto.recoveryCode) {
       throw BadRequestDomainException.create(
         'Recovery code incorrect',
         'recoveryCode',
       );
     }
 
-    if (user.passwordRecovery.expirationDate! < new Date()) {
+    if (user.PasswordRecoveryExpiration! < new Date()) {
       throw BadRequestDomainException.create(
         'Recovery code expired',
         'recoveryCode',
@@ -40,7 +41,6 @@ export class UpdatePasswordUseCase
       dto.newPassword,
     );
 
-    user.updatePasswordHash(passwordHash);
-    await this.usersRepository.save(user);
+    await this.usersRepository.updatePasswordHash(user.Id, passwordHash);
   }
 }
