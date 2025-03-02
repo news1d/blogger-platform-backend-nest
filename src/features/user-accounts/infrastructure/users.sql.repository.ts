@@ -30,7 +30,10 @@ export class UsersSqlRepository {
 
   async getUserByEmail(email: string) {
     const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE "Email" = $1 AND "DeletionStatus" != 'PermanentDeleted'`,
+      `SELECT * FROM "Users" u
+                         JOIN "UserMeta" um ON u."Id" = um."UserId"
+       WHERE "Email" = $1
+         AND "DeletionStatus" != 'PermanentDeleted'`,
       [email],
     );
     return user.length ? user[0] : null;
