@@ -28,7 +28,7 @@ export class TerminateAllOtherDevicesUseCase
       );
 
     for (const device of devices) {
-      await this.securityDevicesRepository.makeDeleted(device.DeviceId);
+      await this.securityDevicesRepository.makeDeleted(device.Id);
     }
   }
 }

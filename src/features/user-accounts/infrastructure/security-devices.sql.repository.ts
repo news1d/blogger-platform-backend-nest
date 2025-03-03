@@ -17,7 +17,7 @@ export class SecurityDevicesSqlRepository {
     const query = `
       SELECT * FROM "Devices"
       WHERE "UserId" = $1
-      AND "DeviceId" != $2
+      AND "Id" != $2
       AND "DeletionStatus" != $3
     `;
     const result = await this.dataSource.query(query, [
@@ -31,7 +31,7 @@ export class SecurityDevicesSqlRepository {
   async getDeviceByIdAndUserIdOrFails(userId: string, deviceId: string) {
     const query = `
       SELECT * FROM "Devices"
-      WHERE "DeviceId" = $1
+      WHERE "Id" = $1
       AND "DeletionStatus" != $2
     `;
     const result = await this.dataSource.query(query, [
@@ -55,7 +55,7 @@ export class SecurityDevicesSqlRepository {
   async getDeviceById(deviceId: string) {
     const query = `
       SELECT * FROM "Devices"
-      WHERE "DeviceId" = $1
+      WHERE "Id" = $1
       AND "DeletionStatus" != $2
     `;
     const result = await this.dataSource.query(query, [
@@ -68,10 +68,9 @@ export class SecurityDevicesSqlRepository {
 
   async createDevice(dto: CreateDeviceDomainDto) {
     const query = `
-        INSERT INTO "Devices" ("UserId", "DeviceId", "IssuedAt", "DeviceName", "Ip", "ExpiresAt")
-        VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING "DeviceId";
-    `;
+          INSERT INTO "Devices" ("UserId", "Id", "IssuedAt", "DeviceName", "Ip", "ExpiresAt")
+          VALUES ($1, $2, $3, $4, $5, $6) RETURNING "Id";
+      `;
     const result = await this.dataSource.query(query, [
       dto.userId,
       dto.deviceId,
@@ -81,14 +80,14 @@ export class SecurityDevicesSqlRepository {
       dto.expiresAt,
     ]);
 
-    return result[0].DeviceId;
+    return result[0].Id;
   }
 
   async updateTokenData(deviceId: string, issuedAt: Date, expiresAt: Date) {
     const query = `
     UPDATE "Devices"
     SET "IssuedAt" = $1, "ExpiresAt" = $2
-    WHERE "DeviceId" = $3
+    WHERE "Id" = $3
     RETURNING *;
   `;
 
@@ -105,7 +104,7 @@ export class SecurityDevicesSqlRepository {
     const query = `
     UPDATE "Devices"
     SET "DeletionStatus" = $1
-    WHERE "DeviceId" = $2 AND "DeletionStatus" = $3
+    WHERE "Id" = $2 AND "DeletionStatus" = $3
     RETURNING *;
   `;
 

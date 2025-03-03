@@ -24,6 +24,6 @@ export class TerminateDeviceUseCase
         deviceId,
       );
 
-    await this.securityDevicesRepository.makeDeleted(device.DeviceId);
+    await this.securityDevicesRepository.makeDeleted(device.Id);
   }
 }

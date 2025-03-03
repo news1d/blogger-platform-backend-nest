@@ -12,7 +12,7 @@ export class DeviceViewDto {
     dto.ip = device.Ip;
     dto.title = device.DeviceName;
     dto.lastActiveDate = device.IssuedAt;
-    dto.deviceId = device.DeviceId;
+    dto.deviceId = device.Id;
 
     return dto;
   }
