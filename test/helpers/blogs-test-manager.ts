@@ -35,7 +35,7 @@ export class BlogsTestManager {
     statusCode: number = HttpStatus.CREATED,
   ): Promise<BlogViewDto> {
     const response = await request(this.app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/blogs`)
+      .post(`/${GLOBAL_PREFIX}/sa/blogs`)
       .send(createModel)
       .auth(this.authUsername, this.authPassword)
       .expect(statusCode);
@@ -78,7 +78,7 @@ export class BlogsTestManager {
     statusCode: number = HttpStatus.CREATED,
   ): Promise<PostViewDto> {
     const response = await request(this.app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/blogs/${blogId}/posts`)
+      .post(`/${GLOBAL_PREFIX}/sa/blogs/${blogId}/posts`)
       .auth(this.authUsername, this.authPassword)
       .send(createPostModel)
       .expect(statusCode);

@@ -32,14 +32,15 @@ import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/de
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
 import { CreatePostWithoutBlogIdInputDto } from '../../posts/api/input-dto/posts-without-blogId.input-dto';
 import { SkipThrottle } from '@nestjs/throttler';
+import { BlogsSqlQueryRepository } from '../infrastructure/query/blogs.sql.query-repository';
+import { PostsSqlQueryRepository } from '../../posts/infrastructure/query/posts.sql.query-repository';
 
 @SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    private commandBus: CommandBus,
-    private blogsQueryRepository: BlogsQueryRepository,
-    private postsQueryRepository: PostsQueryRepository,
+    private blogsQueryRepository: BlogsSqlQueryRepository,
+    private postsQueryRepository: PostsSqlQueryRepository,
   ) {}
 
   @Get()
@@ -47,21 +48,6 @@ export class BlogsController {
     @Query() query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
     return this.blogsQueryRepository.getAllBlogs(query);
-  }
-
-  @ApiBasicAuth('basicAuth')
-  @Post()
-  @UseGuards(BasicAuthGuard)
-  async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
-    const blogId = await this.commandBus.execute(new CreateBlogCommand(body));
-
-    return this.blogsQueryRepository.getBlogById(blogId);
-  }
-
-  @ApiParam({ name: 'id' })
-  @Get(':id')
-  async getBlogById(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.blogsQueryRepository.getBlogById(id);
   }
 
   @ApiBearerAuth()
@@ -73,7 +59,7 @@ export class BlogsController {
     @Param('blogId') blogId: string,
     @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    await this.blogsQueryRepository.getBlogById(blogId);
+    await this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
     return this.postsQueryRepository.getAllPosts(
       query,
       user?.id || null,
@@ -81,27 +67,79 @@ export class BlogsController {
     );
   }
 
+  @ApiParam({ name: 'id' })
+  @Get(':id')
+  async getBlogById(@Param('id') id: string): Promise<BlogViewDto> {
+    return this.blogsQueryRepository.getBlogByIdOrNotFoundFail(id);
+  }
+}
+
+@ApiBasicAuth('basicAuth')
+@UseGuards(BasicAuthGuard)
+@SkipThrottle()
+@Controller('sa/blogs')
+export class BlogsSaController {
+  constructor(
+    private commandBus: CommandBus,
+    private blogsQueryRepository: BlogsSqlQueryRepository,
+    private postsQueryRepository: PostsSqlQueryRepository,
+  ) {}
+
+  @Get()
+  async getAllBlogs(
+    @Query() query: GetBlogsQueryParams,
+  ): Promise<PaginatedViewDto<BlogViewDto[]>> {
+    return this.blogsQueryRepository.getAllBlogs(query);
+  }
+
   @ApiBasicAuth('basicAuth')
+  @Post()
+  async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
+    const blogId = await this.commandBus.execute(new CreateBlogCommand(body));
+
+    return this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
+  }
+
+  @ApiParam({ name: 'id' })
+  @Get(':id')
+  async getBlogById(@Param('id') id: string): Promise<BlogViewDto> {
+    return this.blogsQueryRepository.getBlogByIdOrNotFoundFail(id);
+  }
+
+  @UseGuards(JwtOptionalAuthGuard)
+  @ApiParam({ name: 'blogId' })
+  @Get(':blogId/posts')
+  async getPostsByBlogId(
+    @Query() query: GetPostsQueryParams,
+    @Param('blogId') blogId: string,
+    @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
+  ): Promise<PaginatedViewDto<PostViewDto[]>> {
+    await this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
+    return this.postsQueryRepository.getAllPosts(
+      query,
+      user?.id || null,
+      blogId,
+    );
+  }
+
   @ApiParam({ name: 'blogId' })
   @Post(':blogId/posts')
-  @UseGuards(BasicAuthGuard)
   async createPostByBlogId(
     @Param('blogId') blogId: string,
     @Body() body: CreatePostWithoutBlogIdInputDto,
   ): Promise<PostViewDto> {
-    const blog = await this.blogsQueryRepository.getBlogById(blogId);
+    const blog =
+      await this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
 
     const postId = await this.commandBus.execute(
       new CreatePostForBlogCommand(blogId, blog.name, body),
     );
 
-    return this.postsQueryRepository.getPostById(postId);
+    return this.postsQueryRepository.getPostByIdOrNotFoundFail(postId);
   }
 
-  @ApiBasicAuth('basicAuth')
   @ApiParam({ name: 'id' })
   @Put(':id')
-  @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlogById(
     @Param('id') id: string,
@@ -110,10 +148,8 @@ export class BlogsController {
     return this.commandBus.execute(new UpdateBlogCommand(id, body));
   }
 
-  @ApiBasicAuth('basicAuth')
   @ApiParam({ name: 'id' })
   @Delete(':id')
-  @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlogById(@Param('id') id: string): Promise<void> {
     return this.commandBus.execute(new DeleteBlogCommand(id));

@@ -73,7 +73,7 @@ describe('blogs', () => {
 
   it('unauthorized user shouldn`t create blog', async () => {
     await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/blogs`)
+      .post(`/${GLOBAL_PREFIX}/sa/blogs`)
       .send(blogsTestManager.blogData)
       .expect(HttpStatus.UNAUTHORIZED);
   });
@@ -114,7 +114,7 @@ describe('blogs', () => {
     const blog = await blogsTestManager.createBlog();
 
     await request(app.getHttpServer())
-      .put(`/${GLOBAL_PREFIX}/blogs/${blog.id}`)
+      .put(`/${GLOBAL_PREFIX}/sa/blogs/${blog.id}`)
       .send(newBlogData)
       .expect(HttpStatus.UNAUTHORIZED);
   });
@@ -129,7 +129,7 @@ describe('blogs', () => {
     const blog = await blogsTestManager.createBlog();
 
     await request(app.getHttpServer())
-      .put(`/${GLOBAL_PREFIX}/blogs/${blog.id}`)
+      .put(`/${GLOBAL_PREFIX}/sa/blogs/${blog.id}`)
       .send(newBlogData)
       .auth(blogsTestManager.authUsername, blogsTestManager.authPassword)
       .expect(HttpStatus.NO_CONTENT);
@@ -138,14 +138,14 @@ describe('blogs', () => {
   it('unauthorized user shouldn`t delete blog', async () => {
     const blog = await blogsTestManager.createBlog();
     await request(app.getHttpServer())
-      .delete(`/${GLOBAL_PREFIX}/blogs/${blog.id}`)
+      .delete(`/${GLOBAL_PREFIX}/sa/blogs/${blog.id}`)
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
   it('should delete blog by id', async () => {
     const blog = await blogsTestManager.createBlog();
     await request(app.getHttpServer())
-      .delete(`/${GLOBAL_PREFIX}/blogs/${blog.id}`)
+      .delete(`/${GLOBAL_PREFIX}/sa/blogs/${blog.id}`)
       .auth(blogsTestManager.authUsername, blogsTestManager.authPassword)
       .expect(HttpStatus.NO_CONTENT);
 

@@ -3,6 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlogPost, PostModelType } from '../../../posts/domain/post.entity';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { PostsSqlRepository } from '../../../posts/infrastructure/posts.sql.repository';
 
 export class CreatePostForBlogCommand {
   constructor(
@@ -18,7 +19,7 @@ export class CreatePostForBlogUseCase
 {
   constructor(
     @InjectModel(BlogPost.name) private PostModel: PostModelType,
-    private postsRepository: PostsRepository,
+    private postsRepository: PostsSqlRepository,
   ) {}
 
   async execute({
@@ -26,7 +27,7 @@ export class CreatePostForBlogUseCase
     blogName,
     dto,
   }: CreatePostForBlogCommand): Promise<string> {
-    const post = this.PostModel.createInstance({
+    const post = await this.postsRepository.createPost({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
@@ -34,8 +35,6 @@ export class CreatePostForBlogUseCase
       blogName: blogName,
     });
 
-    await this.postsRepository.save(post);
-
-    return post._id.toString();
+    return post.Id.toString();
   }
 }

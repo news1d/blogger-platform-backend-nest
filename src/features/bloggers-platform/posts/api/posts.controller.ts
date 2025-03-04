@@ -36,12 +36,13 @@ import { UpdateLikeStatusInputDto } from './input-dto/update-like-status.input-d
 import { UpdateLikeStatusOnPostCommand } from '../application/usecases/update-like-status-on-post.usecase';
 import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
+import { PostsSqlQueryRepository } from '../infrastructure/query/posts.sql.query-repository';
 
 @SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(
-    private postsQueryRepository: PostsQueryRepository,
+    private postsQueryRepository: PostsSqlQueryRepository,
     private commentsQueryRepository: CommentsQueryRepository,
     private commandBus: CommandBus,
   ) {}
@@ -70,7 +71,7 @@ export class PostsController {
     @Query() query: GetCommentsQueryParams,
     @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
-    await this.postsQueryRepository.getPostById(postId);
+    await this.postsQueryRepository.getPostByIdOrNotFoundFail(postId);
 
     return this.commentsQueryRepository.getCommentsByPostId(
       query,
@@ -111,7 +112,7 @@ export class PostsController {
   async createPost(@Body() body: CreatePostInputDto): Promise<PostViewDto> {
     const postId = await this.commandBus.execute(new CreatePostCommand(body));
 
-    return this.postsQueryRepository.getPostById(postId);
+    return this.postsQueryRepository.getPostByIdOrNotFoundFail(postId);
   }
 
   @ApiBearerAuth()
@@ -122,7 +123,10 @@ export class PostsController {
     @Param('id') id: string,
     @ExtractUserIfExistsFromRequest() user: UserContextDto | null,
   ): Promise<PostViewDto> {
-    return this.postsQueryRepository.getPostById(id, user?.id || null);
+    return this.postsQueryRepository.getPostByIdOrNotFoundFail(
+      id,
+      user?.id || null,
+    );
   }
 
   @ApiBasicAuth('basicAuth')

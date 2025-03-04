@@ -8,15 +8,15 @@ export class BlogViewDto {
   createdAt: Date;
   isMembership: boolean;
 
-  static mapToView(blog: BlogDocument): BlogViewDto {
+  static mapToView(blog): BlogViewDto {
     const dto = new BlogViewDto();
 
-    dto.id = blog._id.toString();
-    dto.name = blog.name;
-    dto.description = blog.description;
-    dto.websiteUrl = blog.websiteUrl;
-    dto.createdAt = blog.createdAt;
-    dto.isMembership = blog.isMembership;
+    dto.id = blog.Id.toString();
+    dto.name = blog.Name;
+    dto.description = blog.Description;
+    dto.websiteUrl = blog.WebsiteUrl;
+    dto.createdAt = blog.CreatedAt;
+    dto.isMembership = blog.IsMembership;
 
     return dto;
   }

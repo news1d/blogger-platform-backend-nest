@@ -10,7 +10,10 @@ import {
   Blog,
   BlogSchema,
 } from './features/bloggers-platform/blogs/domain/blog.entity';
-import { BlogsController } from './features/bloggers-platform/blogs/api/blogs.controller';
+import {
+  BlogsController,
+  BlogsSaController,
+} from './features/bloggers-platform/blogs/api/blogs.controller';
 import { BlogsRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.repository';
 import { BlogsQueryRepository } from './features/bloggers-platform/blogs/infrastructure/query/blogs.query-repository';
 import { UsersQueryRepository } from './features/user-accounts/infrastructure/query/users.query-repository';
@@ -99,6 +102,10 @@ import { TestingRepository } from './testing/infrastructure/testing.repository';
 import { SecurityDevicesSqlQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.sql.query-repository';
 import { SecurityDevicesSqlRepository } from './features/user-accounts/infrastructure/security-devices.sql.repository';
 import { BlacklistSqlRepository } from './features/user-accounts/infrastructure/blacklist.sql.repository';
+import { BlogsSqlQueryRepository } from './features/bloggers-platform/blogs/infrastructure/query/blogs.sql.query-repository';
+import { PostsSqlQueryRepository } from './features/bloggers-platform/posts/infrastructure/query/posts.sql.query-repository';
+import { PostsSqlRepository } from './features/bloggers-platform/posts/infrastructure/posts.sql.repository';
+import { BlogsSqlRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.sql.repository';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -206,6 +213,7 @@ const securityDevicesUseCases = [
     AppController,
     UsersController,
     BlogsController,
+    BlogsSaController,
     PostsController,
     CommentsController,
     TestingController,
@@ -243,9 +251,13 @@ const securityDevicesUseCases = [
     UsersQueryRepository,
     UsersSqlQueryRepository,
     BlogsRepository,
+    BlogsSqlRepository,
     BlogsQueryRepository,
+    BlogsSqlQueryRepository,
     PostsRepository,
+    PostsSqlRepository,
     PostsQueryRepository,
+    PostsSqlQueryRepository,
     CommentsRepository,
     CommentsQueryRepository,
     TestingRepository,
