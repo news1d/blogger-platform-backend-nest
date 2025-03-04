@@ -210,7 +210,7 @@ describe('users', () => {
       const refreshToken = usersTestManager.extractRefreshToken(response);
       const accessToken = response.body.accessToken;
 
-      await delay(500);
+      await delay(1000);
 
       const newResponse = await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/refresh-token`)

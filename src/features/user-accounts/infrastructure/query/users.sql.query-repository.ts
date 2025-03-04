@@ -49,7 +49,7 @@ export class UsersSqlQueryRepository {
       params,
     );
 
-    const totalCount = parseInt(totalCountResult[0].count, 10);
+    const totalCount = Number(totalCountResult[0].count);
     const items = users.map(UserViewDto.mapToView);
 
     return PaginatedViewDto.mapToView({
@@ -60,10 +60,10 @@ export class UsersSqlQueryRepository {
     });
   }
 
-  async getUserByIdOrNotFoundFail(id: number): Promise<UserViewDto> {
+  async getUserByIdOrNotFoundFail(id: string): Promise<UserViewDto> {
     const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE "Id" = $1 AND "DeletionStatus" != 'PermanentDeleted'`,
-      [id],
+      `SELECT * FROM "Users" WHERE "Id" = $1 AND "DeletionStatus" != $2`,
+      [id, DeletionStatus.PermanentDeleted],
     );
 
     if (!user.length) {
