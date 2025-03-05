@@ -24,7 +24,7 @@ export class BlogsTestManager {
     websiteUrl: 'https://techblog.com',
   };
 
-  postData: Omit<CreatePostDto, 'blogId'> = {
+  postData: Omit<CreatePostDto, 'blogId' | 'blogName'> = {
     title: 'First Post',
     shortDescription: 'Short description about post',
     content: 'Some content',
@@ -42,22 +42,6 @@ export class BlogsTestManager {
 
     return response.body;
   }
-
-  // async createSeveralBlogs(count: number): Promise<BlogViewDto[]> {
-  //   const blogsPromises = [] as Promise<BlogViewDto>[];
-  //
-  //   for (let i = 0; i < count; i++) {
-  //     await delay(50);
-  //     const response = this.createBlog({
-  //       name: 'blogName' + i,
-  //       description: 'blogDescription' + i,
-  //       websiteUrl: `https://www.some${i}site.com`,
-  //     });
-  //     blogsPromises.push(response);
-  //   }
-  //
-  //   return Promise.all(blogsPromises);
-  // }
 
   async createSeveralBlogs(count: number): Promise<BlogViewDto[]> {
     const blogs: BlogViewDto[] = [];

@@ -2,9 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
-import { Blog } from '../domain/blog.entity';
-import { CreateBlogDomainDto } from '../domain/dto/create-blog.domain.dto';
-import { CreateBlogInputDto } from '../api/input-dto/blogs.input-dto';
+import { CreateBlogDto } from '../dto/create-blog.dto';
 
 @Injectable()
 export class BlogsSqlRepository {
@@ -32,7 +30,7 @@ export class BlogsSqlRepository {
     return result.length ? result[0] : null;
   }
 
-  async createBlog(dto: CreateBlogDomainDto) {
+  async createBlog(dto: CreateBlogDto) {
     const result = await this.dataSource.query(
       `INSERT INTO "Blogs" ("Name", "Description", "WebsiteUrl")
        VALUES ($1, $2, $3) RETURNING *`,
@@ -41,7 +39,7 @@ export class BlogsSqlRepository {
     return result[0];
   }
 
-  async update(id: string, dto: CreateBlogInputDto) {
+  async update(id: string, dto: CreateBlogDto) {
     const result = await this.dataSource.query(
       `UPDATE "Blogs" 
        SET "Name" = $1, "Description" = $2, "WebsiteUrl" = $3
@@ -56,13 +54,13 @@ export class BlogsSqlRepository {
     );
 
     if (!result.length) {
-      throw new NotFoundException('Blog not found or already deleted');
+      throw new NotFoundException('Blog not found');
     }
 
     return result[0];
   }
 
-  async makeDeleted(id: string): Promise<void> {
+  async makeDeleted(id: string) {
     const result = await this.dataSource.query(
       `UPDATE "Blogs"
        SET "DeletionStatus" = $1 

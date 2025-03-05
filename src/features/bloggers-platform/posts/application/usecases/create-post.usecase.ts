@@ -6,7 +6,7 @@ import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository'
 import { PostsRepository } from '../../infrastructure/posts.repository';
 
 export class CreatePostCommand {
-  constructor(public dto: CreatePostDto) {}
+  constructor(public dto: Omit<CreatePostDto, 'blogName'>) {}
 }
 
 @CommandHandler(CreatePostCommand)

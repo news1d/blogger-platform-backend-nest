@@ -2,14 +2,13 @@ import { CreatePostDto } from '../../../posts/dto/create-post.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlogPost, PostModelType } from '../../../posts/domain/post.entity';
-import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { PostsSqlRepository } from '../../../posts/infrastructure/posts.sql.repository';
 
 export class CreatePostForBlogCommand {
   constructor(
     public blogId: string,
     public blogName: string,
-    public dto: Omit<CreatePostDto, 'blogId'>,
+    public dto: Omit<CreatePostDto, 'blogId' | 'blogName'>,
   ) {}
 }
 
