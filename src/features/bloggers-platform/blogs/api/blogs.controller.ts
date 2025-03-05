@@ -34,7 +34,8 @@ import { CreatePostWithoutBlogIdInputDto } from '../../posts/api/input-dto/posts
 import { SkipThrottle } from '@nestjs/throttler';
 import { BlogsSqlQueryRepository } from '../infrastructure/query/blogs.sql.query-repository';
 import { PostsSqlQueryRepository } from '../../posts/infrastructure/query/posts.sql.query-repository';
-
+import { DeletePostFromBlogCommand } from '../application/usecases/delete-post-from-blog.usecase';
+import { UpdatePostFromBlogCommand } from '../application/usecases/update-post-from-blog.usecase';
 @SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
@@ -100,12 +101,6 @@ export class BlogsSaController {
     return this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
   }
 
-  @ApiParam({ name: 'id' })
-  @Get(':id')
-  async getBlogById(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.blogsQueryRepository.getBlogByIdOrNotFoundFail(id);
-  }
-
   @UseGuards(JwtOptionalAuthGuard)
   @ApiParam({ name: 'blogId' })
   @Get(':blogId/posts')
@@ -153,5 +148,32 @@ export class BlogsSaController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlogById(@Param('id') id: string): Promise<void> {
     return this.commandBus.execute(new DeleteBlogCommand(id));
+  }
+
+  @ApiParam({ name: 'blogId' })
+  @ApiParam({ name: 'postId' })
+  @Put(':blogId/posts/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updatePostFromBlog(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+    @Body() body: CreatePostWithoutBlogIdInputDto,
+  ): Promise<void> {
+    return this.commandBus.execute(
+      new UpdatePostFromBlogCommand(blogId, postId, body),
+    );
+  }
+
+  @ApiParam({ name: 'blogId' })
+  @ApiParam({ name: 'postId' })
+  @Delete(':blogId/posts/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePostFromBlog(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+  ): Promise<void> {
+    return this.commandBus.execute(
+      new DeletePostFromBlogCommand(blogId, postId),
+    );
   }
 }

@@ -106,6 +106,8 @@ import { BlogsSqlQueryRepository } from './features/bloggers-platform/blogs/infr
 import { PostsSqlQueryRepository } from './features/bloggers-platform/posts/infrastructure/query/posts.sql.query-repository';
 import { PostsSqlRepository } from './features/bloggers-platform/posts/infrastructure/posts.sql.repository';
 import { BlogsSqlRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.sql.repository';
+import { DeletePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/delete-post-from-blog.usecase';
+import { UpdatePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/update-post-from-blog.usecase';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -125,6 +127,8 @@ const blogUseCases = [
   UpdateBlogUseCase,
   DeleteBlogUseCase,
   CreatePostForBlogUseCase,
+  DeletePostFromBlogUseCase,
+  UpdatePostFromBlogUseCase,
 ];
 
 const postUseCases = [
