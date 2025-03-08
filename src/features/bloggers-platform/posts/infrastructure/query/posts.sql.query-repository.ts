@@ -21,21 +21,25 @@ export class PostsSqlQueryRepository {
     const sortBy = query.sortBy.charAt(0).toUpperCase() + query.sortBy.slice(1);
     const sortDirection = query.sortDirection.toUpperCase();
 
-    let sql = `SELECT * FROM "Posts" WHERE "DeletionStatus" != $1`;
-    const params: any[] = [DeletionStatus.PermanentDeleted, offset, limit];
+    let whereClause = `"DeletionStatus" != $1`;
+    const params: any[] = [DeletionStatus.PermanentDeleted];
 
     if (blogId) {
-      sql += ` AND "BlogId" = $${params.length + 1}`;
       params.push(blogId);
+      whereClause += ` AND "BlogId" = $${params.length}`;
     }
 
-    sql += ` ORDER BY "${sortBy}" ${sortDirection} OFFSET $2 LIMIT $3`;
-
-    const posts = await this.dataSource.query(sql, params);
+    const posts = await this.dataSource.query(
+      `SELECT * FROM "Posts"
+     WHERE ${whereClause}
+     ORDER BY "${sortBy}" ${sortDirection}
+     LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset],
+    );
 
     const totalCountResult = await this.dataSource.query(
-      `SELECT COUNT(*) FROM "Posts" WHERE "DeletionStatus" != $1`,
-      [DeletionStatus.PermanentDeleted],
+      `SELECT COUNT(*) FROM "Posts" WHERE ${whereClause}`,
+      params,
     );
 
     const totalCount = Number(totalCountResult[0].count);

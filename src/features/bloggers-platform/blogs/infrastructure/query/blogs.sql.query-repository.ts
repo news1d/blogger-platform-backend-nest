@@ -18,8 +18,8 @@ export class BlogsSqlQueryRepository {
     const sortBy = query.sortBy.charAt(0).toUpperCase() + query.sortBy.slice(1);
     const sortDirection = query.sortDirection.toUpperCase();
 
-    let whereClause = `"DeletionStatus" != 'PermanentDeleted'`;
-    const params: any[] = [];
+    let whereClause = `"DeletionStatus" != $1`;
+    const params: any[] = [DeletionStatus.PermanentDeleted];
 
     if (query.searchNameTerm) {
       params.push(`%${query.searchNameTerm}%`);
