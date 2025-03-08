@@ -3,8 +3,9 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { GetPostsQueryParams } from '../../api/input-dto/get-posts-query-params';
-import { PostViewDto } from '../../api/view-dto/posts.view-dto';
+import { NewestLikesDto, PostViewDto } from '../../api/view-dto/posts.view-dto';
 import { DeletionStatus } from '../../../../../core/dto/deletion-status';
+import { LikeStatus } from '../../../../../core/dto/like-status';
 
 @Injectable()
 export class PostsSqlQueryRepository {
@@ -38,7 +39,9 @@ export class PostsSqlQueryRepository {
     );
 
     const totalCount = Number(totalCountResult[0].count);
-    const items = posts.map((post) => PostViewDto.mapToView(post, userId));
+    const items = await Promise.all(
+      posts.map((post) => this.mapToView(post, userId)),
+    );
 
     return PaginatedViewDto.mapToView({
       items,
@@ -48,19 +51,117 @@ export class PostsSqlQueryRepository {
     });
   }
 
+  async getUserLikeStatusForPost(
+    postId: string,
+    userId?: string | null,
+  ): Promise<LikeStatus> {
+    let myStatus = LikeStatus.None;
+
+    if (userId) {
+      const statusResult = await this.dataSource.query(
+        `SELECT "Status" FROM "PostLikes" 
+         WHERE "PostId" = $1 AND "UserId" = $2`,
+        [postId, userId],
+      );
+
+      if (statusResult.length > 0) {
+        myStatus = statusResult[0].Status;
+      }
+    }
+
+    return myStatus;
+  }
+
+  async getNewestLikesForPost(
+    postId: string,
+    count: number,
+  ): Promise<NewestLikesDto[]> {
+    const newestLikes = await this.dataSource.query(
+      `SELECT pl."UserId", u."Login", pl."CreatedAt"
+       FROM "PostLikes" pl
+                LEFT JOIN "Users" u ON pl."UserId" = u."Id"
+       WHERE pl."PostId" = $1
+       ORDER BY pl."CreatedAt" DESC
+           LIMIT $2;`,
+      [postId, count],
+    );
+
+    return newestLikes.map((like) => ({
+      userId: like.UserId,
+      login: like.Login,
+      addedAt: like.CreatedAt,
+    }));
+  }
+
+  async getLikesDislikesCountForPost(
+    postId: string,
+  ): Promise<{ likesCount: number; dislikesCount: number }> {
+    const likesDislikesCounts = await this.dataSource.query(
+      `SELECT 
+                COUNT(CASE WHEN "Status" = $1 THEN 1 END) AS "likesCount",
+                COUNT(CASE WHEN "Status" = $2 THEN 1 END) AS "dislikesCount"
+             FROM "PostLikes"
+             WHERE "PostId" = $3`,
+      [LikeStatus.Like, LikeStatus.Dislike, postId],
+    );
+
+    const likesCount = likesDislikesCounts[0]?.likesCount || 0;
+    const dislikesCount = likesDislikesCounts[0]?.dislikesCount || 0;
+
+    return { likesCount, dislikesCount };
+  }
+
+  async getBlogNameForPost(postId: string): Promise<string> {
+    const result = await this.dataSource.query(
+      `SELECT b."Name"
+     FROM "Posts" p
+     JOIN "Blogs" b ON p."BlogId" = b."Id"
+     WHERE p."Id" = $1`,
+      [postId],
+    );
+
+    return result[0].Name;
+  }
+
   async getPostByIdOrNotFoundFail(
-    id: string,
+    postId: string,
     userId?: string | null,
   ): Promise<PostViewDto> {
     const post = await this.dataSource.query(
       `SELECT * FROM "Posts" WHERE "Id" = $1 AND "DeletionStatus" != $2`,
-      [id, DeletionStatus.PermanentDeleted],
+      [postId, DeletionStatus.PermanentDeleted],
     );
 
     if (!post.length) {
       throw new NotFoundException('Post not found');
     }
 
-    return PostViewDto.mapToView(post[0], userId);
+    return this.mapToView(post[0], userId);
+  }
+
+  async mapToView(post, userId?: string | null): Promise<PostViewDto> {
+    const { likesCount, dislikesCount } =
+      await this.getLikesDislikesCountForPost(post.Id);
+    const myStatus = await this.getUserLikeStatusForPost(post.Id, userId);
+    const newestLikes = await this.getNewestLikesForPost(post.Id, 3);
+    const blogName = await this.getBlogNameForPost(post.Id);
+
+    const dto = new PostViewDto();
+
+    dto.id = post.Id.toString();
+    dto.title = post.Title;
+    dto.shortDescription = post.ShortDescription;
+    dto.content = post.Content;
+    dto.blogId = post.BlogId.toString();
+    dto.blogName = blogName;
+    dto.createdAt = post.CreatedAt;
+    dto.extendedLikesInfo = {
+      likesCount: likesCount,
+      dislikesCount: dislikesCount,
+      myStatus: myStatus,
+      newestLikes: newestLikes,
+    };
+
+    return dto;
   }
 }

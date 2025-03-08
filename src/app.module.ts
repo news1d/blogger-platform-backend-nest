@@ -108,6 +108,9 @@ import { PostsSqlRepository } from './features/bloggers-platform/posts/infrastru
 import { BlogsSqlRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.sql.repository';
 import { DeletePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/delete-post-from-blog.usecase';
 import { UpdatePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/update-post-from-blog.usecase';
+import { PostLikesSqlRepository } from './features/bloggers-platform/posts/infrastructure/post-likes.sql.repository';
+import { CommentsSqlRepository } from './features/bloggers-platform/comments/infrastructure/comments.sql.repository';
+import { CommentsSqlQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.sql.query-repository';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -262,8 +265,11 @@ const securityDevicesUseCases = [
     PostsSqlRepository,
     PostsQueryRepository,
     PostsSqlQueryRepository,
+    PostLikesSqlRepository,
     CommentsRepository,
+    CommentsSqlRepository,
     CommentsQueryRepository,
+    CommentsSqlQueryRepository,
     TestingRepository,
     TestingService,
     CryptoService,

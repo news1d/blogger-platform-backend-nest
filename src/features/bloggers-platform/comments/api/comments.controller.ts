@@ -24,12 +24,13 @@ import { UpdateLikeStatusInputDto } from '../../posts/api/input-dto/update-like-
 import { UpdateLikeStatusOnCommentCommand } from '../application/usecases/update-like-status-on-comment.usecase';
 import { DeleteCommentCommand } from '../application/usecases/delete-comment.usecase';
 import { SkipThrottle } from '@nestjs/throttler';
+import { CommentsSqlQueryRepository } from '../infrastructure/query/comments.sql.query-repository';
 
 @SkipThrottle()
 @Controller('comments')
 export class CommentsController {
   constructor(
-    private commentsQueryRepository: CommentsQueryRepository,
+    private commentsQueryRepository: CommentsSqlQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

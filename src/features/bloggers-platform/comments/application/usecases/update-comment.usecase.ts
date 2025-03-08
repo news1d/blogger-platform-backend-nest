@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { ForbiddenException } from '@nestjs/common';
+import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class UpdateCommentCommand {
   constructor(
@@ -14,7 +15,7 @@ export class UpdateCommentCommand {
 export class UpdateCommentUseCase
   implements ICommandHandler<UpdateCommentCommand>
 {
-  constructor(private commentsRepository: CommentsRepository) {}
+  constructor(private commentsRepository: CommentsSqlRepository) {}
 
   async execute({
     commentId,
@@ -24,12 +25,10 @@ export class UpdateCommentUseCase
     const comment =
       await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
 
-    if (comment.commentatorInfo.userId !== userId) {
+    if (comment.UserId.toString() !== userId) {
       throw new ForbiddenException('You are not the author of the comment');
     }
 
-    comment.update(content);
-
-    await this.commentsRepository.save(comment);
+    await this.commentsRepository.update(commentId, content);
   }
 }

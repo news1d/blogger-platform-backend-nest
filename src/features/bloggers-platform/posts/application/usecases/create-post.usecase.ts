@@ -4,6 +4,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BlogPost, PostModelType } from '../../domain/post.entity';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { PostsRepository } from '../../infrastructure/posts.repository';
+import { BlogsSqlRepository } from '../../../blogs/infrastructure/blogs.sql.repository';
+import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
 
 export class CreatePostCommand {
   constructor(public dto: Omit<CreatePostDto, 'blogName'>) {}
@@ -13,15 +15,16 @@ export class CreatePostCommand {
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
     @InjectModel(BlogPost.name) private PostModel: PostModelType,
-    private blogsRepository: BlogsRepository,
-    private postsRepository: PostsRepository,
+    private blogsRepository: BlogsSqlRepository,
+    private postsRepository: PostsSqlRepository,
   ) {}
 
   async execute({ dto }: CreatePostCommand): Promise<string> {
     const blog = await this.blogsRepository.getBlogByIdOrNotFoundFail(
       dto.blogId,
     );
-    const post = this.PostModel.createInstance({
+
+    const post = await this.postsRepository.createPost({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
@@ -29,8 +32,6 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
       blogName: blog.name,
     });
 
-    await this.postsRepository.save(post);
-
-    return post._id.toString();
+    return post.Id.toString();
   }
 }

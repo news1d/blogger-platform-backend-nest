@@ -68,11 +68,12 @@ export class PostsSqlRepository {
     return result[0];
   }
 
-  async makeDeleted(id: string): Promise<void> {
+  async makeDeleted(id: string) {
     const result = await this.dataSource.query(
       `UPDATE "Posts"
        SET "DeletionStatus" = $1
-       WHERE "Id" = $2 AND "DeletionStatus" = $3 RETURNING *`,
+       WHERE "Id" = $2 AND "DeletionStatus" = $3
+       RETURNING *`,
       [DeletionStatus.PermanentDeleted, id, DeletionStatus.NotDeleted],
     );
 

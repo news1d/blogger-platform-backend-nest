@@ -7,6 +7,9 @@ import {
   PostComment,
 } from '../../../comments/domain/comment.entity';
 import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
+import { UsersSqlRepository } from '../../../../user-accounts/infrastructure/users.sql.repository';
+import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
+import { CommentsSqlRepository } from '../../../comments/infrastructure/comments.sql.repository';
 
 export class CreateCommentForPostCommand {
   constructor(
@@ -22,9 +25,9 @@ export class CreateCommentForPostUseCase
 {
   constructor(
     @InjectModel(PostComment.name) private CommentModel: CommentModelType,
-    private postsRepository: PostsRepository,
-    private usersRepository: UsersRepository,
-    private commentsRepository: CommentsRepository,
+    private postsRepository: PostsSqlRepository,
+    private usersRepository: UsersSqlRepository,
+    private commentsRepository: CommentsSqlRepository,
   ) {}
 
   async execute({
@@ -33,19 +36,14 @@ export class CreateCommentForPostUseCase
     content,
   }: CreateCommentForPostCommand): Promise<string> {
     await this.postsRepository.getPostByIdOrNotFoundFail(postId);
-    const user = await this.usersRepository.getUserByIdOrNotFoundFail(userId);
+    await this.usersRepository.getUserByIdOrNotFoundFail(userId);
 
-    const comment = this.CommentModel.createInstance({
+    const comment = await this.commentsRepository.createComment({
       content: content,
-      commentatorInfo: {
-        userId: user.id,
-        userLogin: user.login,
-      },
+      userId: userId,
       postId: postId,
     });
 
-    await this.commentsRepository.save(comment);
-
-    return comment._id.toString();
+    return comment.Id.toString();
   }
 }

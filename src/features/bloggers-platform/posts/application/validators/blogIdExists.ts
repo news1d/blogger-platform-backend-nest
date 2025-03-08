@@ -7,17 +7,14 @@ import {
 import { Injectable } from '@nestjs/common';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { Types } from 'mongoose';
+import { BlogsSqlRepository } from '../../../blogs/infrastructure/blogs.sql.repository';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class BlogIdExistsValidator implements ValidatorConstraintInterface {
-  constructor(private blogsRepository: BlogsRepository) {}
+  constructor(private blogsRepository: BlogsSqlRepository) {}
 
   async validate(blogId: string): Promise<boolean> {
-    if (!Types.ObjectId.isValid(blogId)) {
-      return false;
-    }
-
     const blog = await this.blogsRepository.getBlogById(blogId);
     return !!blog;
   }

@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LikeStatus } from '../../../../../core/dto/like-status';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
+import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class UpdateLikeStatusOnCommentCommand {
   constructor(
@@ -14,18 +15,19 @@ export class UpdateLikeStatusOnCommentCommand {
 export class UpdateLikeStatusOnCommentUseCase
   implements ICommandHandler<UpdateLikeStatusOnCommentCommand>
 {
-  constructor(private commentsRepository: CommentsRepository) {}
+  constructor(private commentsRepository: CommentsSqlRepository) {}
 
   async execute({
     commentId,
     userId,
     likeStatus,
   }: UpdateLikeStatusOnCommentCommand) {
-    const comment =
-      await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
+    await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
 
-    comment.updateLikeStatus(userId, likeStatus);
-
-    await this.commentsRepository.save(comment);
+    await this.commentsRepository.updateLikeStatus(
+      userId,
+      commentId,
+      likeStatus,
+    );
   }
 }

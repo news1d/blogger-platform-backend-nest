@@ -37,13 +37,14 @@ import { UpdateLikeStatusOnPostCommand } from '../application/usecases/update-li
 import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 import { PostsSqlQueryRepository } from '../infrastructure/query/posts.sql.query-repository';
+import { CommentsSqlQueryRepository } from '../../comments/infrastructure/query/comments.sql.query-repository';
 
 @SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(
     private postsQueryRepository: PostsSqlQueryRepository,
-    private commentsQueryRepository: CommentsQueryRepository,
+    private commentsQueryRepository: CommentsSqlQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

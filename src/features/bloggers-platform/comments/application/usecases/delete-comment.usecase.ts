@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { ForbiddenException } from '@nestjs/common';
+import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class DeleteCommentCommand {
   constructor(
@@ -13,18 +14,16 @@ export class DeleteCommentCommand {
 export class DeleteCommentUseCase
   implements ICommandHandler<DeleteCommentCommand>
 {
-  constructor(private commentsRepository: CommentsRepository) {}
+  constructor(private commentsRepository: CommentsSqlRepository) {}
 
   async execute({ commentId, userId }: DeleteCommentCommand) {
     const comment =
       await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
 
-    if (comment.commentatorInfo.userId !== userId) {
+    if (comment.UserId.toString() !== userId) {
       throw new ForbiddenException('You are not the author of the comment');
     }
 
-    comment.makeDeleted();
-
-    await this.commentsRepository.save(comment);
+    await this.commentsRepository.makeDeleted(commentId);
   }
 }
