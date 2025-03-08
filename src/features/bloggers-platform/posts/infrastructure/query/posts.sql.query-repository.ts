@@ -80,14 +80,14 @@ export class PostsSqlQueryRepository {
       `SELECT pl."UserId", u."Login", pl."CreatedAt"
        FROM "PostLikes" pl
                 LEFT JOIN "Users" u ON pl."UserId" = u."Id"
-       WHERE pl."PostId" = $1
+       WHERE pl."PostId" = $1 AND pl."Status" = $2
        ORDER BY pl."CreatedAt" DESC
-           LIMIT $2;`,
-      [postId, count],
+           LIMIT $3;`,
+      [postId, LikeStatus.Like, count],
     );
 
     return newestLikes.map((like) => ({
-      userId: like.UserId,
+      userId: like.UserId.toString(),
       login: like.Login,
       addedAt: like.CreatedAt,
     }));
@@ -156,8 +156,8 @@ export class PostsSqlQueryRepository {
     dto.blogName = blogName;
     dto.createdAt = post.CreatedAt;
     dto.extendedLikesInfo = {
-      likesCount: likesCount,
-      dislikesCount: dislikesCount,
+      likesCount: +likesCount,
+      dislikesCount: +dislikesCount,
       myStatus: myStatus,
       newestLikes: newestLikes,
     };
