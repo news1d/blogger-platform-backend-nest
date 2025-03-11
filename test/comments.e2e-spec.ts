@@ -183,4 +183,89 @@ describe('comments', () => {
     expect(responseBody.likesInfo.dislikesCount).toEqual(0);
     expect(responseBody.likesInfo.myStatus).toEqual(LikeStatus.Like);
   });
+
+  it('should change the number of likes and likeStatus from multiple users', async () => {
+    const blog = await blogsTestManager.createBlog();
+    const post = await blogsTestManager.createPost(blog.id);
+    const users = await usersTestManager.createSeveralUsers(4);
+
+    const accessTokens = await Promise.all(
+      users.map((user) => usersTestManager.login(user.login, '123456789')),
+    );
+
+    const comment = await postsTestManager.createCommentForPost(
+      post.id,
+      accessTokens[0].accessToken,
+    );
+
+    for (let i = 0; i < users.length; i++) {
+      await request(app.getHttpServer())
+        .put(`/${GLOBAL_PREFIX}/comments/${comment.id}/like-status`)
+        .send({ likeStatus: LikeStatus.Like })
+        .auth(accessTokens[i].accessToken, { type: 'bearer' })
+        .expect(HttpStatus.NO_CONTENT);
+    }
+
+    const { body: responseBody } = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/comments/${comment.id}`)
+      .auth(accessTokens[1].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(responseBody.likesInfo.likesCount).toEqual(4);
+    expect(responseBody.likesInfo.dislikesCount).toEqual(0);
+    expect(responseBody.likesInfo.myStatus).toEqual(LikeStatus.Like);
+  });
+
+  it('should not decrease likesCount or reset myStatus when liking twice', async () => {
+    const blog = await blogsTestManager.createBlog();
+    const post = await blogsTestManager.createPost(blog.id);
+    await usersTestManager.createUser();
+
+    // Логиним пользователя
+    const { accessToken } = await usersTestManager.login(
+      usersTestManager.userData.login,
+      usersTestManager.userData.password,
+    );
+
+    // Создаём комментарий
+    const comment = await postsTestManager.createCommentForPost(
+      post.id,
+      accessToken,
+    );
+
+    // Первый лайк
+    await request(app.getHttpServer())
+      .put(`/${GLOBAL_PREFIX}/comments/${comment.id}/like-status`)
+      .send({ likeStatus: LikeStatus.Like })
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    let { body: responseBody } = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/comments/${comment.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(responseBody.likesInfo.likesCount).toEqual(1);
+    expect(responseBody.likesInfo.dislikesCount).toEqual(0);
+    expect(responseBody.likesInfo.myStatus).toEqual(LikeStatus.Like);
+
+    // Повторный лайк
+    await request(app.getHttpServer())
+      .put(`/${GLOBAL_PREFIX}/comments/${comment.id}/like-status`)
+      .send({ likeStatus: LikeStatus.Like })
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    responseBody = (
+      await request(app.getHttpServer())
+        .get(`/${GLOBAL_PREFIX}/comments/${comment.id}`)
+        .auth(accessToken, { type: 'bearer' })
+        .expect(HttpStatus.OK)
+    ).body;
+
+    // Проверяем, что лайк не убрался
+    expect(responseBody.likesInfo.likesCount).toEqual(1);
+    expect(responseBody.likesInfo.dislikesCount).toEqual(0);
+    expect(responseBody.likesInfo.myStatus).toEqual(LikeStatus.Like);
+  });
 });
