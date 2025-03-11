@@ -86,7 +86,7 @@ export class CommentsSqlQueryRepository {
     if (userId) {
       const statusResult = await this.dataSource.query(
         `SELECT "Status" FROM "CommentLikes" 
-         WHERE "Id" = $1 AND "UserId" = $2`,
+         WHERE "CommentId" = $1 AND "UserId" = $2`,
         [commentId, userId],
       );
 
