@@ -1,5 +1,3 @@
-import { DeviceDocument } from '../../domain/device.entity';
-
 export class DeviceViewDto {
   ip: string;
   title: string;

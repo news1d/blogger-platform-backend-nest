@@ -1,4 +1,3 @@
-//Ошибки класса DomainException (instanceof DomainException)
 import { Catch, HttpStatus } from '@nestjs/common';
 import { DomainException } from '../domain-exceptions';
 import { BaseExceptionFilter } from './base-exception-filter';

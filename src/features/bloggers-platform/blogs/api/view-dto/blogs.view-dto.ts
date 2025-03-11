@@ -1,5 +1,3 @@
-import { BlogDocument } from '../../domain/blog.entity';
-
 export class BlogViewDto {
   id: string;
   name: string;

@@ -3,7 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
-export class PostLikesSqlRepository {
+export class PostLikesRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async updateLikeStatus(userId: string, postId: string, likeStatus: string) {

@@ -1,10 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../../user-accounts/infrastructure/users.repository';
-import { PostsRepository } from '../../infrastructure/posts.repository';
 import { LikeStatus } from '../../../../../core/dto/like-status';
-import { UsersSqlRepository } from '../../../../user-accounts/infrastructure/users.sql.repository';
-import { PostLikesSqlRepository } from '../../infrastructure/post-likes.sql.repository';
-import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
+import { PostLikesRepository } from '../../infrastructure/post-likes.repository';
+import { PostsRepository } from '../../infrastructure/posts.repository';
 
 export class UpdateLikeStatusOnPostCommand {
   constructor(
@@ -19,9 +17,9 @@ export class UpdateLikeStatusOnPostUseCase
   implements ICommandHandler<UpdateLikeStatusOnPostCommand>
 {
   constructor(
-    private usersRepository: UsersSqlRepository,
-    private postsRepository: PostsSqlRepository,
-    private postLikesRepository: PostLikesSqlRepository,
+    private usersRepository: UsersRepository,
+    private postsRepository: PostsRepository,
+    private postLikesRepository: PostLikesRepository,
   ) {}
 
   async execute({ postId, userId, likeStatus }: UpdateLikeStatusOnPostCommand) {

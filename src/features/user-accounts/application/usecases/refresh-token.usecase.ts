@@ -1,7 +1,4 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blacklist, BlacklistModelType } from '../../domain/blacklist.entity';
-import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 import { Inject } from '@nestjs/common';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -9,9 +6,8 @@ import {
 } from '../../constants/auth-tokens.inject-constants';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
+import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
-import { BlacklistSqlRepository } from '../../infrastructure/blacklist.sql.repository';
-import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class RefreshTokenCommand {
   constructor(
@@ -26,14 +22,13 @@ export class RefreshTokenUseCase
   implements ICommandHandler<RefreshTokenCommand>
 {
   constructor(
-    @InjectModel(Blacklist.name) private BlacklistModel: BlacklistModelType,
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private accessTokenContext: JwtService,
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
     private refreshTokenContext: JwtService,
-    private blacklistRepository: BlacklistSqlRepository,
+    private blacklistRepository: BlacklistRepository,
     private authService: AuthService,
-    private securityDevicesRepository: SecurityDevicesSqlRepository,
+    private securityDevicesRepository: SecurityDevicesRepository,
   ) {}
 
   async execute({
@@ -44,9 +39,6 @@ export class RefreshTokenUseCase
     newAccessToken: string;
     newRefreshToken: string;
   }> {
-    // const blacklistedRefreshToken =
-    //   this.BlacklistModel.createInstance(refreshToken);
-
     await this.blacklistRepository.addToken(refreshToken);
 
     const newAccessToken = this.accessTokenContext.sign({
@@ -61,13 +53,10 @@ export class RefreshTokenUseCase
     const tokenData =
       await this.authService.getRefreshTokenData(newRefreshToken);
 
-    const device =
-      await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
-        userId,
-        deviceId,
-      );
-
-    // device.updateTokenData(tokenData.issuedAt, tokenData.expiresAt);
+    await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
+      userId,
+      deviceId,
+    );
 
     await this.securityDevicesRepository.updateTokenData(
       deviceId,

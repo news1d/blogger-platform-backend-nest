@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LikeStatus } from '../../../../../core/dto/like-status';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class UpdateLikeStatusOnCommentCommand {
   constructor(
@@ -15,7 +14,7 @@ export class UpdateLikeStatusOnCommentCommand {
 export class UpdateLikeStatusOnCommentUseCase
   implements ICommandHandler<UpdateLikeStatusOnCommentCommand>
 {
-  constructor(private commentsRepository: CommentsSqlRepository) {}
+  constructor(private commentsRepository: CommentsRepository) {}
 
   async execute({
     commentId,

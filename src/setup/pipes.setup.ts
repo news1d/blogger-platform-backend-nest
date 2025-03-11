@@ -2,7 +2,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 
 import { ValidationError } from '@nestjs/common';
 import { BadRequestDomainException } from '../core/exceptions/domain-exceptions';
-import { ObjectIdValidationTransformationPipe } from '../core/pipes/object-id-validation-transformation-pipe.service';
 
 type ErrorResponse = { message: string; field: string };
 
@@ -34,7 +33,6 @@ export const errorFormatter = (
 
 export function pipesSetup(app: INestApplication) {
   app.useGlobalPipes(
-    new ObjectIdValidationTransformationPipe(),
     new ValidationPipe({
       transform: true,
       stopAtFirstError: true,

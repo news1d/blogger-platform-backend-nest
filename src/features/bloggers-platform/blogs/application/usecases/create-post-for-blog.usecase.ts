@@ -1,8 +1,6 @@
 import { CreatePostDto } from '../../../posts/dto/create-post.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
-import { BlogPost, PostModelType } from '../../../posts/domain/post.entity';
-import { PostsSqlRepository } from '../../../posts/infrastructure/posts.sql.repository';
+import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 
 export class CreatePostForBlogCommand {
   constructor(
@@ -16,10 +14,7 @@ export class CreatePostForBlogCommand {
 export class CreatePostForBlogUseCase
   implements ICommandHandler<CreatePostForBlogCommand>
 {
-  constructor(
-    @InjectModel(BlogPost.name) private PostModel: PostModelType,
-    private postsRepository: PostsSqlRepository,
-  ) {}
+  constructor(private postsRepository: PostsRepository) {}
 
   async execute({
     blogId,

@@ -1,11 +1,8 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../domain/user.entity';
-import { UsersRepository } from '../../infrastructure/users.repository';
 import { CryptoService } from '../crypto.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../infrastructure/users.repository';
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}
@@ -14,9 +11,7 @@ export class CreateUserCommand {
 @CommandHandler(CreateUserCommand)
 export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
   constructor(
-    @InjectModel(User.name)
-    private UserModel: UserModelType,
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private cryptoService: CryptoService,
   ) {}
 
@@ -46,18 +41,6 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
     const passwordHash = await this.cryptoService.createPasswordHash(
       dto.password,
     );
-
-    // const user = this.UserModel.createInstance({
-    //   email: dto.email,
-    //   login: dto.login,
-    //   passwordHash: passwordHash,
-    // });
-    //
-    // const userDto = {
-    //   email: dto.email,
-    //   login: dto.login,
-    //   passwordHash: passwordHash,
-    // };
 
     const user = await this.usersRepository.createUser({
       email: dto.email,

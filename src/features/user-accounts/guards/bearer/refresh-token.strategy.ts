@@ -5,10 +5,8 @@ import { Request } from 'express';
 import { JwtConfig } from '../../config/jwt.config';
 import { UserContextDto } from '../dto/user-context.dto';
 import { AuthService } from '../../application/auth.service';
-import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
-import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
-import { BlacklistSqlRepository } from '../../infrastructure/blacklist.sql.repository';
+import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -17,9 +15,9 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     private jwtConfig: JwtConfig,
-    private blacklistRepository: BlacklistSqlRepository,
+    private blacklistRepository: BlacklistRepository,
     private authService: AuthService,
-    private securityDevicesRepository: SecurityDevicesSqlRepository,
+    private securityDevicesRepository: SecurityDevicesRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

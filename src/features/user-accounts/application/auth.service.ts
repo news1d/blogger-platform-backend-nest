@@ -4,12 +4,11 @@ import { UserContextDto } from '../guards/dto/user-context.dto';
 import { CryptoService } from './crypto.service';
 import { RefreshTokenDataDto } from '../dto/refresh-token-data.dto';
 import jwt from 'jsonwebtoken';
-import { UsersSqlRepository } from '../infrastructure/users.sql.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private cryptoService: CryptoService,
   ) {}
   async validateUser(
@@ -37,21 +36,16 @@ export class AuthService {
   async getRefreshTokenData(
     refreshToken: string,
   ): Promise<RefreshTokenDataDto> {
-    try {
-      const decoded: any = jwt.decode(refreshToken);
+    const decoded: any = jwt.decode(refreshToken);
 
-      if (!decoded) {
-        throw new Error('Invalid or malformed refresh token');
-      }
-
-      return {
-        deviceId: decoded.deviceId,
-        issuedAt: new Date(decoded.iat * 1000),
-        expiresAt: new Date(decoded.exp * 1000),
-      };
-    } catch (error) {
-      console.error('Error decoding refresh token:', error);
-      throw new Error('Error decoding refresh token');
+    if (!decoded) {
+      throw new Error('Invalid or malformed refresh token');
     }
+
+    return {
+      deviceId: decoded.deviceId,
+      issuedAt: new Date(decoded.iat * 1000),
+      expiresAt: new Date(decoded.exp * 1000),
+    };
   }
 }

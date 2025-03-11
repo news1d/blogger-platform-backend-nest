@@ -1,9 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { randomUUID } from 'crypto';
-import { UsersRepository } from '../../infrastructure/users.repository';
 import { EmailService } from '../../../notifications/email.service';
-import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../infrastructure/users.repository';
 
 export class RegistrationEmailResendingCommand {
   constructor(public email: string) {}
@@ -14,7 +13,7 @@ export class RegistrationEmailResendingUseCase
   implements ICommandHandler<RegistrationEmailResendingCommand>
 {
   constructor(
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private emailService: EmailService,
   ) {}
 

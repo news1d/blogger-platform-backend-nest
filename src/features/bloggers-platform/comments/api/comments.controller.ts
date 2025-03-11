@@ -9,7 +9,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { CommentsQueryRepository } from '../infrastructure/query/comments.query-repository';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { CommentViewDto } from './view-dto/comments.view-dto';
 import { JwtAuthGuard } from '../../../user-accounts/guards/bearer/jwt-auth.guard';
@@ -24,13 +23,13 @@ import { UpdateLikeStatusInputDto } from '../../posts/api/input-dto/update-like-
 import { UpdateLikeStatusOnCommentCommand } from '../application/usecases/update-like-status-on-comment.usecase';
 import { DeleteCommentCommand } from '../application/usecases/delete-comment.usecase';
 import { SkipThrottle } from '@nestjs/throttler';
-import { CommentsSqlQueryRepository } from '../infrastructure/query/comments.sql.query-repository';
+import { CommentsQueryRepository } from '../infrastructure/query/comments.query-repository';
 
 @SkipThrottle()
 @Controller('comments')
 export class CommentsController {
   constructor(
-    private commentsQueryRepository: CommentsSqlQueryRepository,
+    private commentsQueryRepository: CommentsQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

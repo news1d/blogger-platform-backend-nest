@@ -10,7 +10,6 @@ import {
 import { DeviceViewDto } from './view-dto/devices.view-dto';
 import { ApiCookieAuth, ApiParam } from '@nestjs/swagger';
 import { RefreshTokenGuard } from '../guards/bearer/refresh-token-auth.guard';
-import { SecurityDevicesQueryRepository } from '../infrastructure/query/security-devices.query-repository';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../guards/dto/user-context.dto';
 import { ExtractDeviceFromCookie } from '../guards/decorators/param/extract-device-from-request.decorator';
@@ -19,13 +18,13 @@ import { CommandBus } from '@nestjs/cqrs';
 import { TerminateAllOtherDevicesCommand } from '../application/usecases/terminate-all-other-devices.usecase';
 import { TerminateDeviceCommand } from '../application/usecases/terminate-device.usecase';
 import { SkipThrottle } from '@nestjs/throttler';
-import { SecurityDevicesSqlQueryRepository } from '../infrastructure/query/security-devices.sql.query-repository';
+import { SecurityDevicesQueryRepository } from '../infrastructure/query/security-devices.query-repository';
 
 @SkipThrottle()
 @Controller('security/devices')
 export class SecurityDevicesController {
   constructor(
-    private securityDevicesQueryRepository: SecurityDevicesSqlQueryRepository,
+    private securityDevicesQueryRepository: SecurityDevicesQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

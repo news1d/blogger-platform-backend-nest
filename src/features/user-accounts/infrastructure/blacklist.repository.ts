@@ -1,22 +1,21 @@
-import {
-  Blacklist,
-  BlacklistDocument,
-  BlacklistModelType,
-} from '../domain/blacklist.entity';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlacklistRepository {
-  constructor(
-    @InjectModel(Blacklist.name) private BlacklistModel: BlacklistModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
+
   async getToken(token: string): Promise<boolean> {
-    const result = await this.BlacklistModel.findOne({ token: token });
-    return !!result;
+    const query = `SELECT 1 FROM "Blacklist" WHERE "Token" = $1;`;
+    const result = await this.dataSource.query(query, [token]);
+    return result.length > 0;
   }
 
-  async save(token: BlacklistDocument): Promise<void> {
-    await token.save();
+  async addToken(token: string): Promise<void> {
+    await this.dataSource.query(
+      `INSERT INTO "Blacklist" ("Token") VALUES ($1);`,
+      [token],
+    );
   }
 }

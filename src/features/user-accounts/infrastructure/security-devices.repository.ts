@@ -3,57 +3,119 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  Device,
-  DeviceDocument,
-  DeviceModelType,
-} from '../domain/device.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { DataSource } from 'typeorm';
 import { DeletionStatus } from '../../../core/dto/deletion-status';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { CreateDeviceDomainDto } from '../domain/dto/create-device.domain.dto';
 
 @Injectable()
 export class SecurityDevicesRepository {
-  constructor(@InjectModel(Device.name) private DeviceModel: DeviceModelType) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  async save(device: DeviceDocument) {
-    await device.save();
-  }
-
-  async getAllDevicesByUserIdAndDeviceId(
-    userId: string,
-    deviceId: string,
-  ): Promise<DeviceDocument[]> {
-    return this.DeviceModel.find({
+  async getAllDevicesByUserIdAndDeviceId(userId: string, deviceId: string) {
+    const query = `
+      SELECT * FROM "Devices"
+      WHERE "UserId" = $1
+      AND "Id" != $2
+      AND "DeletionStatus" != $3
+    `;
+    return await this.dataSource.query(query, [
       userId,
-      deviceId: { $ne: deviceId },
-      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
-    });
+      deviceId,
+      DeletionStatus.PermanentDeleted,
+    ]);
   }
 
-  async getDeviceByIdAndUserIdOrFails(
-    userId: string,
-    deviceId: string,
-  ): Promise<DeviceDocument> {
-    const device = await this.DeviceModel.findOne({
-      deviceId: deviceId,
-      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
-    });
+  async getDeviceByIdAndUserIdOrFails(userId: string, deviceId: string) {
+    const query = `
+      SELECT * FROM "Devices"
+      WHERE "Id" = $1
+      AND "DeletionStatus" != $2
+    `;
+    const result = await this.dataSource.query(query, [
+      deviceId,
+      DeletionStatus.PermanentDeleted,
+    ]);
+
+    const device = result[0];
 
     if (!device) {
       throw new NotFoundException('Device not found');
     }
 
-    if (userId != device.userId) {
-      throw new ForbiddenException(`Trying to get another user's device`);
+    if (userId !== device.UserId.toString()) {
+      throw new ForbiddenException("Trying to get another user's device");
     }
 
     return device;
   }
 
-  async getDeviceById(deviceId: string): Promise<DeviceDocument | null> {
-    return this.DeviceModel.findOne({
-      deviceId: deviceId,
-      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
-    });
+  async getDeviceById(deviceId: string) {
+    const query = `
+      SELECT * FROM "Devices"
+      WHERE "Id" = $1
+      AND "DeletionStatus" != $2
+    `;
+    const result = await this.dataSource.query(query, [
+      deviceId,
+      DeletionStatus.PermanentDeleted,
+    ]);
+
+    return result[0] || null;
+  }
+
+  async createDevice(dto: CreateDeviceDomainDto) {
+    const query = `
+          INSERT INTO "Devices" ("UserId", "Id", "IssuedAt", "DeviceName", "Ip", "ExpiresAt")
+          VALUES ($1, $2, $3, $4, $5, $6) RETURNING "Id";
+      `;
+    const result = await this.dataSource.query(query, [
+      dto.userId,
+      dto.deviceId,
+      dto.issuedAt,
+      dto.deviceName,
+      dto.ip,
+      dto.expiresAt,
+    ]);
+
+    return result[0].Id;
+  }
+
+  async updateTokenData(deviceId: string, issuedAt: Date, expiresAt: Date) {
+    const query = `
+    UPDATE "Devices"
+    SET "IssuedAt" = $1, "ExpiresAt" = $2
+    WHERE "Id" = $3
+    RETURNING *;
+  `;
+
+    const result = await this.dataSource.query(query, [
+      issuedAt,
+      expiresAt,
+      deviceId,
+    ]);
+
+    return result[0];
+  }
+
+  async makeDeleted(deviceId: string) {
+    const query = `
+    UPDATE "Devices"
+    SET "DeletionStatus" = $1
+    WHERE "Id" = $2 AND "DeletionStatus" = $3
+    RETURNING *;
+  `;
+
+    const result = await this.dataSource.query(query, [
+      DeletionStatus.PermanentDeleted,
+      deviceId,
+      DeletionStatus.NotDeleted,
+    ]);
+
+    if (!result.length) {
+      throw new Error('Device already deleted or not found');
+    }
+
+    return result[0];
   }
 }

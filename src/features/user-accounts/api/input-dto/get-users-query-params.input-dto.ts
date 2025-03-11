@@ -1,4 +1,3 @@
-//dto для запроса списка юзеров с пагинацией, сортировкой, фильтрами
 import { BaseSortablePaginationParams } from '../../../../core/dto/base.query-params.input-dto';
 import { UsersSortBy } from './users-sort-by';
 

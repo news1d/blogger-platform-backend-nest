@@ -11,7 +11,6 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
 import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { PostViewDto } from './view-dto/posts.view-dto';
@@ -20,7 +19,6 @@ import { ApiBasicAuth, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UpdatePostInputDto } from './input-dto/update-post.input-dto';
 import { CommentViewDto } from '../../comments/api/view-dto/comments.view-dto';
 import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments-query-params.input-dto';
-import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments.query-repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
 import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
@@ -36,15 +34,15 @@ import { UpdateLikeStatusInputDto } from './input-dto/update-like-status.input-d
 import { UpdateLikeStatusOnPostCommand } from '../application/usecases/update-like-status-on-post.usecase';
 import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
-import { PostsSqlQueryRepository } from '../infrastructure/query/posts.sql.query-repository';
-import { CommentsSqlQueryRepository } from '../../comments/infrastructure/query/comments.sql.query-repository';
+import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
+import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments.query-repository';
 
 @SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(
-    private postsQueryRepository: PostsSqlQueryRepository,
-    private commentsQueryRepository: CommentsSqlQueryRepository,
+    private postsQueryRepository: PostsQueryRepository,
+    private commentsQueryRepository: CommentsQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

@@ -1,6 +1,5 @@
 import { Trim } from '../../../../core/decorators/transform/trim';
 import { IsEmail, IsString, Length } from 'class-validator';
-import { passwordConstraints } from '../../domain/user.entity';
 import {
   UpdatePasswordRecoveryDto,
   PasswordRecoveryDto,
@@ -16,7 +15,7 @@ export class PasswordRecoveryInputDto implements PasswordRecoveryDto {
 export class NewPasswordRecoveryInputDto implements UpdatePasswordRecoveryDto {
   @Trim()
   @IsString()
-  @Length(passwordConstraints.minLength, passwordConstraints.maxLength)
+  @Length(6, 20)
   newPassword: string;
 
   @Trim()

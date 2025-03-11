@@ -1,15 +1,11 @@
 import { IsEmail, IsString, Length, Matches } from 'class-validator';
 import { Trim } from '../../../../core/decorators/transform/trim';
-import {
-  loginConstraints,
-  passwordConstraints,
-} from '../../domain/user.entity';
 
 export class CreateUserInputDto {
   @Trim()
   @IsString()
-  @Length(loginConstraints.minLength, loginConstraints.maxLength)
-  @Matches(loginConstraints.match, {
+  @Length(3, 10)
+  @Matches(/^[a-zA-Z0-9_-]*$/, {
     message:
       'Login must contain only letters, numbers, underscores, or hyphens.',
   })
@@ -17,7 +13,7 @@ export class CreateUserInputDto {
 
   @Trim()
   @IsString()
-  @Length(passwordConstraints.minLength, passwordConstraints.maxLength)
+  @Length(6, 20)
   password: string;
 
   @Trim()

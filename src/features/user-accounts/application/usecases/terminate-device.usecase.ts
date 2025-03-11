@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
-import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class TerminateDeviceCommand {
   constructor(
@@ -13,9 +12,7 @@ export class TerminateDeviceCommand {
 export class TerminateDeviceUseCase
   implements ICommandHandler<TerminateDeviceCommand>
 {
-  constructor(
-    private securityDevicesRepository: SecurityDevicesSqlRepository,
-  ) {}
+  constructor(private securityDevicesRepository: SecurityDevicesRepository) {}
 
   async execute({ userId, deviceId }: TerminateDeviceCommand) {
     const device =

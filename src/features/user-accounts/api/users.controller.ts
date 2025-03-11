@@ -10,7 +10,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { UserViewDto } from './view-dto/users.view-dto';
 import { CreateUserInputDto } from './input-dto/users.input-dto';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
@@ -21,7 +20,7 @@ import { CreateUserCommand } from '../application/usecases/create-user.usecase';
 import { DeleteUserCommand } from '../application/usecases/delete-user.usecase';
 import { CommandBus } from '@nestjs/cqrs';
 import { SkipThrottle } from '@nestjs/throttler';
-import { UsersSqlQueryRepository } from '../infrastructure/query/users.sql.query-repository';
+import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 
 @SkipThrottle()
 @Controller('sa/users')
@@ -29,7 +28,7 @@ import { UsersSqlQueryRepository } from '../infrastructure/query/users.sql.query
 @ApiBasicAuth('basicAuth')
 export class UsersController {
   constructor(
-    private usersQueryRepository: UsersSqlQueryRepository,
+    private usersQueryRepository: UsersQueryRepository,
     private commandBus: CommandBus,
   ) {}
 

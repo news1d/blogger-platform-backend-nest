@@ -1,35 +1,45 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogModelType } from '../../domain/blog.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { BlogViewDto } from '../../api/view-dto/blogs.view-dto';
 import { GetBlogsQueryParams } from '../../api/input-dto/get-blogs-query-params.input-dto';
-import { FilterQuery } from 'mongoose';
-import { User } from '../../../../user-accounts/domain/user.entity';
 import { DeletionStatus } from '../../../../../core/dto/deletion-status';
 
 @Injectable()
 export class BlogsQueryRepository {
-  constructor(@InjectModel(Blog.name) private BlogModel: BlogModelType) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async getAllBlogs(
     query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    const filter: FilterQuery<User> = {
-      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
-    };
+    const offset = query.calculateSkip();
+    const limit = query.pageSize;
+    const sortBy = query.sortBy.charAt(0).toUpperCase() + query.sortBy.slice(1);
+    const sortDirection = query.sortDirection.toUpperCase();
+
+    let whereClause = `"DeletionStatus" != $1`;
+    const params: any[] = [DeletionStatus.PermanentDeleted];
 
     if (query.searchNameTerm) {
-      filter.name = { $regex: query.searchNameTerm, $options: 'i' };
+      params.push(`%${query.searchNameTerm}%`);
+      whereClause += ` AND "Name" ILIKE $${params.length}`;
     }
 
-    const blogs = await this.BlogModel.find(filter)
-      .sort({ [query.sortBy]: query.sortDirection })
-      .skip(query.calculateSkip())
-      .limit(query.pageSize);
+    const blogs = await this.dataSource.query(
+      `SELECT * FROM "Blogs"
+       WHERE ${whereClause}
+       ORDER BY "${sortBy}" ${sortDirection}
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset],
+    );
 
-    const totalCount = await this.BlogModel.countDocuments(filter);
+    const totalCountResult = await this.dataSource.query(
+      `SELECT COUNT(*) FROM "Blogs" WHERE ${whereClause}`,
+      params,
+    );
 
+    const totalCount = Number(totalCountResult[0].count);
     const items = blogs.map(BlogViewDto.mapToView);
 
     return PaginatedViewDto.mapToView({
@@ -40,16 +50,16 @@ export class BlogsQueryRepository {
     });
   }
 
-  async getBlogById(id: string): Promise<BlogViewDto> {
-    const blog = await this.BlogModel.findOne({
-      _id: id,
-      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
-    });
+  async getBlogByIdOrNotFoundFail(id: string): Promise<BlogViewDto> {
+    const blog = await this.dataSource.query(
+      `SELECT * FROM "Blogs" WHERE "Id" = $1 AND "DeletionStatus" != $2`,
+      [id, DeletionStatus.PermanentDeleted],
+    );
 
-    if (!blog) {
+    if (!blog.length) {
       throw new NotFoundException('Blog not found');
     }
 
-    return BlogViewDto.mapToView(blog);
+    return BlogViewDto.mapToView(blog[0]);
   }
 }

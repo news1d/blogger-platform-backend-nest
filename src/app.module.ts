@@ -3,33 +3,13 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersController } from './features/user-accounts/api/users.controller';
-import { UsersRepository } from './features/user-accounts/infrastructure/users.repository';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './features/user-accounts/domain/user.entity';
-import {
-  Blog,
-  BlogSchema,
-} from './features/bloggers-platform/blogs/domain/blog.entity';
 import {
   BlogsController,
   BlogsSaController,
 } from './features/bloggers-platform/blogs/api/blogs.controller';
-import { BlogsRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.repository';
-import { BlogsQueryRepository } from './features/bloggers-platform/blogs/infrastructure/query/blogs.query-repository';
-import { UsersQueryRepository } from './features/user-accounts/infrastructure/query/users.query-repository';
-import {
-  BlogPost,
-  PostSchema,
-} from './features/bloggers-platform/posts/domain/post.entity';
 import { PostsController } from './features/bloggers-platform/posts/api/posts.controller';
-import { PostsRepository } from './features/bloggers-platform/posts/infrastructure/posts.repository';
-import { PostsQueryRepository } from './features/bloggers-platform/posts/infrastructure/query/posts.query-repository';
 import { CommentsController } from './features/bloggers-platform/comments/api/comments.controller';
-import { CommentsQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.query-repository';
-import {
-  CommentSchema,
-  PostComment,
-} from './features/bloggers-platform/comments/domain/comment.entity';
 import { TestingController } from './testing/api/testing.controller';
 import { TestingService } from './testing/application/testing.service';
 import { CryptoService } from './features/user-accounts/application/crypto.service';
@@ -69,48 +49,36 @@ import { CreatePostForBlogUseCase } from './features/bloggers-platform/blogs/app
 import { CreatePostUseCase } from './features/bloggers-platform/posts/application/usecases/create-post.usecase';
 import { UpdatePostUseCase } from './features/bloggers-platform/posts/application/usecases/update-post.usecase';
 import { DeletePostUseCase } from './features/bloggers-platform/posts/application/usecases/delete-post.usecase';
-import { CommentsRepository } from './features/bloggers-platform/comments/infrastructure/comments.repository';
 import { CreateCommentForPostUseCase } from './features/bloggers-platform/posts/application/usecases/create-comment-for-post.usecase';
 import { UpdateLikeStatusOnPostUseCase } from './features/bloggers-platform/posts/application/usecases/update-like-status-on-post.usecase';
 import { UpdateLikeStatusOnCommentUseCase } from './features/bloggers-platform/comments/application/usecases/update-like-status-on-comment.usecase';
 import { UpdateCommentUseCase } from './features/bloggers-platform/comments/application/usecases/update-comment.usecase';
 import { DeleteCommentUseCase } from './features/bloggers-platform/comments/application/usecases/delete-comment.usecase';
 import { BlogIdExistsValidator } from './features/bloggers-platform/posts/application/validators/blogIdExists';
-import { SecurityDevicesQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.query-repository';
 import { SecurityDevicesController } from './features/user-accounts/api/security-devices.controller';
 import { RefreshTokenStrategy } from './features/user-accounts/guards/bearer/refresh-token.strategy';
-import { SecurityDevicesRepository } from './features/user-accounts/infrastructure/security-devices.repository';
-import {
-  Device,
-  DeviceSchema,
-} from './features/user-accounts/domain/device.entity';
 import { TerminateAllOtherDevicesUseCase } from './features/user-accounts/application/usecases/terminate-all-other-devices.usecase';
 import { TerminateDeviceUseCase } from './features/user-accounts/application/usecases/terminate-device.usecase';
-import { BlacklistRepository } from './features/user-accounts/infrastructure/blacklist.repository';
-import {
-  Blacklist,
-  BlacklistSchema,
-} from './features/user-accounts/domain/blacklist.entity';
 import { RefreshTokenUseCase } from './features/user-accounts/application/usecases/refresh-token.usecase';
 import { LogoutUserUseCase } from './features/user-accounts/application/usecases/logout-user.usecase';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersSqlRepository } from './features/user-accounts/infrastructure/users.sql.repository';
-import { UsersSqlQueryRepository } from './features/user-accounts/infrastructure/query/users.sql.query-repository';
+import { UsersRepository } from './features/user-accounts/infrastructure/users.repository';
+import { UsersQueryRepository } from './features/user-accounts/infrastructure/query/users.query-repository';
 import { TestingRepository } from './testing/infrastructure/testing.repository';
-import { SecurityDevicesSqlQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.sql.query-repository';
-import { SecurityDevicesSqlRepository } from './features/user-accounts/infrastructure/security-devices.sql.repository';
-import { BlacklistSqlRepository } from './features/user-accounts/infrastructure/blacklist.sql.repository';
-import { BlogsSqlQueryRepository } from './features/bloggers-platform/blogs/infrastructure/query/blogs.sql.query-repository';
-import { PostsSqlQueryRepository } from './features/bloggers-platform/posts/infrastructure/query/posts.sql.query-repository';
-import { PostsSqlRepository } from './features/bloggers-platform/posts/infrastructure/posts.sql.repository';
-import { BlogsSqlRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.sql.repository';
+import { SecurityDevicesQueryRepository } from './features/user-accounts/infrastructure/query/security-devices.query-repository';
+import { SecurityDevicesRepository } from './features/user-accounts/infrastructure/security-devices.repository';
+import { BlacklistRepository } from './features/user-accounts/infrastructure/blacklist.repository';
+import { BlogsQueryRepository } from './features/bloggers-platform/blogs/infrastructure/query/blogs.query-repository';
+import { PostsQueryRepository } from './features/bloggers-platform/posts/infrastructure/query/posts.query-repository';
+import { PostsRepository } from './features/bloggers-platform/posts/infrastructure/posts.repository';
+import { BlogsRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.repository';
 import { DeletePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/delete-post-from-blog.usecase';
 import { UpdatePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/update-post-from-blog.usecase';
-import { PostLikesSqlRepository } from './features/bloggers-platform/posts/infrastructure/post-likes.sql.repository';
-import { CommentsSqlRepository } from './features/bloggers-platform/comments/infrastructure/comments.sql.repository';
-import { CommentsSqlQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.sql.query-repository';
+import { PostLikesRepository } from './features/bloggers-platform/posts/infrastructure/post-likes.repository';
+import { CommentsRepository } from './features/bloggers-platform/comments/infrastructure/comments.repository';
+import { CommentsQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.query-repository';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -183,14 +151,6 @@ const securityDevicesUseCases = [
       },
       inject: [CoreConfig],
     }),
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Blog.name, schema: BlogSchema },
-      { name: BlogPost.name, schema: PostSchema },
-      { name: PostComment.name, schema: CommentSchema },
-      { name: Device.name, schema: DeviceSchema },
-      { name: Blacklist.name, schema: BlacklistSchema },
-    ]),
     MailerModule.forRootAsync({
       useFactory: (emailConfig: EmailConfig) => ({
         transport: {
@@ -243,7 +203,7 @@ const securityDevicesUseCases = [
       useFactory: (jwtConfig: JwtConfig) => {
         return new JwtService({
           secret: jwtConfig.refreshSecret,
-          signOptions: { expiresIn: '20s' },
+          signOptions: { expiresIn: '10m' },
         });
       },
       inject: [JwtConfig],
@@ -254,22 +214,14 @@ const securityDevicesUseCases = [
     },
     AppService,
     UsersRepository,
-    UsersSqlRepository,
     UsersQueryRepository,
-    UsersSqlQueryRepository,
     BlogsRepository,
-    BlogsSqlRepository,
     BlogsQueryRepository,
-    BlogsSqlQueryRepository,
     PostsRepository,
-    PostsSqlRepository,
     PostsQueryRepository,
-    PostsSqlQueryRepository,
-    PostLikesSqlRepository,
+    PostLikesRepository,
     CommentsRepository,
-    CommentsSqlRepository,
     CommentsQueryRepository,
-    CommentsSqlQueryRepository,
     TestingRepository,
     TestingService,
     CryptoService,
@@ -282,11 +234,8 @@ const securityDevicesUseCases = [
     AllExceptionsFilter,
     BlogIdExistsValidator,
     SecurityDevicesQueryRepository,
-    SecurityDevicesSqlQueryRepository,
     SecurityDevicesRepository,
-    SecurityDevicesSqlRepository,
     BlacklistRepository,
-    BlacklistSqlRepository,
     ...userUseCases,
     ...blogUseCases,
     ...postUseCases,

@@ -1,9 +1,8 @@
 import { UpdatePasswordRecoveryDto } from '../../dto/password-recovery.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersRepository } from '../../infrastructure/users.repository';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { CryptoService } from '../crypto.service';
-import { UsersSqlRepository } from '../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../infrastructure/users.repository';
 
 export class UpdatePasswordCommand {
   constructor(public dto: UpdatePasswordRecoveryDto) {}
@@ -14,7 +13,7 @@ export class UpdatePasswordUseCase
   implements ICommandHandler<UpdatePasswordCommand>
 {
   constructor(
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private cryptoService: CryptoService,
   ) {}
 

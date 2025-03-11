@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { ForbiddenException } from '@nestjs/common';
-import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class DeleteCommentCommand {
   constructor(
@@ -14,7 +13,7 @@ export class DeleteCommentCommand {
 export class DeleteCommentUseCase
   implements ICommandHandler<DeleteCommentCommand>
 {
-  constructor(private commentsRepository: CommentsSqlRepository) {}
+  constructor(private commentsRepository: CommentsRepository) {}
 
   async execute({ commentId, userId }: DeleteCommentCommand) {
     const comment =

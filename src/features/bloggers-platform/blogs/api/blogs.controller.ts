@@ -12,14 +12,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CreateBlogInputDto } from './input-dto/blogs.input-dto';
-import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { BlogViewDto } from './view-dto/blogs.view-dto';
 import { ApiBasicAuth, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { UpdateBlogInputDto } from './input-dto/update-blog.input-dto';
 import { PostViewDto } from '../../posts/api/view-dto/posts.view-dto';
-import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts-query-params';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
@@ -32,16 +30,16 @@ import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/de
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
 import { CreatePostWithoutBlogIdInputDto } from '../../posts/api/input-dto/posts-without-blogId.input-dto';
 import { SkipThrottle } from '@nestjs/throttler';
-import { BlogsSqlQueryRepository } from '../infrastructure/query/blogs.sql.query-repository';
-import { PostsSqlQueryRepository } from '../../posts/infrastructure/query/posts.sql.query-repository';
+import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
+import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { DeletePostFromBlogCommand } from '../application/usecases/delete-post-from-blog.usecase';
 import { UpdatePostFromBlogCommand } from '../application/usecases/update-post-from-blog.usecase';
 @SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    private blogsQueryRepository: BlogsSqlQueryRepository,
-    private postsQueryRepository: PostsSqlQueryRepository,
+    private blogsQueryRepository: BlogsQueryRepository,
+    private postsQueryRepository: PostsQueryRepository,
   ) {}
 
   @Get()
@@ -82,8 +80,8 @@ export class BlogsController {
 export class BlogsSaController {
   constructor(
     private commandBus: CommandBus,
-    private blogsQueryRepository: BlogsSqlQueryRepository,
-    private postsQueryRepository: PostsSqlQueryRepository,
+    private blogsQueryRepository: BlogsQueryRepository,
+    private postsQueryRepository: PostsQueryRepository,
   ) {}
 
   @Get()
