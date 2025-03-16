@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Blacklist } from '../domain/blacklist.entity';
 
 @Injectable()
 export class BlacklistRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Blacklist)
+    private blacklistRepository: Repository<Blacklist>,
+  ) {}
 
   async getToken(token: string): Promise<boolean> {
-    const query = `SELECT 1 FROM "Blacklist" WHERE "Token" = $1;`;
-    const result = await this.dataSource.query(query, [token]);
-    return result.length > 0;
+    const exists = await this.blacklistRepository.findOneBy({ token });
+    return !!exists;
   }
 
-  async addToken(token: string): Promise<void> {
-    await this.dataSource.query(
-      `INSERT INTO "Blacklist" ("Token") VALUES ($1);`,
-      [token],
-    );
+  async save(token: Blacklist): Promise<void> {
+    await this.blacklistRepository.save(token);
   }
 }

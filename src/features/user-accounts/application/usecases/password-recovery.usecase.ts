@@ -23,8 +23,9 @@ export class PasswordRecoveryUseCase {
     }
     const confirmCode = randomUUID().toString();
 
-    await this.usersRepository.setPasswordRecoveryCode(user.Id, confirmCode);
+    user.setPasswordRecoveryCode(confirmCode);
+    await this.usersRepository.save(user);
 
-    this.emailService.sendPasswordRecoveryEmail(user.Email, confirmCode);
+    this.emailService.sendPasswordRecoveryEmail(user.email, confirmCode);
   }
 }

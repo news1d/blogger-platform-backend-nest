@@ -19,13 +19,14 @@ export class TerminateAllOtherDevicesUseCase
     deviceId,
   }: TerminateAllOtherDevicesCommand): Promise<void> {
     const devices =
-      await this.securityDevicesRepository.getAllDevicesByUserIdAndDeviceId(
+      await this.securityDevicesRepository.getAllOtherDevicesByUserId(
         userId,
         deviceId,
       );
 
     for (const device of devices) {
-      await this.securityDevicesRepository.makeDeleted(device.Id);
+      device.makeDeleted();
+      await this.securityDevicesRepository.save(device);
     }
   }
 }

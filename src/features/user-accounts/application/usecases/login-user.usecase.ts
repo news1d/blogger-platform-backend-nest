@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthService } from '../auth.service';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { Device } from '../../domain/device.entity';
 
 export class LoginUserCommand {
   constructor(
@@ -45,7 +46,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
 
     const tokenData = await this.authService.getRefreshTokenData(refreshToken);
 
-    await this.securityDevicesRepository.createDevice({
+    const device = Device.createInstance({
       userId: userId,
       deviceId: tokenData.deviceId,
       issuedAt: tokenData.issuedAt,
@@ -53,6 +54,8 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       ip: ip,
       expiresAt: tokenData.expiresAt,
     });
+
+    await this.securityDevicesRepository.save(device);
 
     return {
       accessToken,

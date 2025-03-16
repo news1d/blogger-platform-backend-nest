@@ -122,7 +122,7 @@ export class CommentsQueryRepository {
     dto.content = comment.Content;
     dto.commentatorInfo = {
       userId: comment.UserId.toString(),
-      userLogin: user.Login,
+      userLogin: user.login,
     };
     dto.createdAt = comment.CreatedAt;
     dto.likesInfo = {

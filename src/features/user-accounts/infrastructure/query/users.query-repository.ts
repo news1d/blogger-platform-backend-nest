@@ -1,54 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ILike, Repository } from 'typeorm';
 import { UserViewDto } from '../../api/view-dto/users.view-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { GetUsersQueryParams } from '../../api/input-dto/get-users-query-params.input-dto';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
+import { User } from '../../domain/user.entity';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(User) private usersRepository: Repository<User>,
+  ) {}
 
   async getAllUsers(
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
-    const offset = query.calculateSkip();
-    const limit = query.pageSize;
-    const sortBy = query.sortBy.charAt(0).toUpperCase() + query.sortBy.slice(1);
-    const sortDirection = query.sortDirection.toUpperCase();
-
-    let whereClause = `"DeletionStatus" != $1`;
-    const params: any[] = [DeletionStatus.PermanentDeleted];
+    const filter: any = {
+      deletionStatus: DeletionStatus.NotDeleted,
+    };
 
     if (query.searchLoginTerm) {
-      params.push(`%${query.searchLoginTerm}%`);
-      whereClause += ` AND "Login" ILIKE $${params.length}`;
+      filter.login = ILike(`%${query.searchLoginTerm}%`);
     }
 
     if (query.searchEmailTerm) {
-      params.push(`%${query.searchEmailTerm}%`);
-      if (params.length > 1) {
-        whereClause += ` OR "Email" ILIKE $${params.length}`; // Если есть оба фильтра, добавляем OR
-      } else {
-        whereClause += ` AND "Email" ILIKE $${params.length}`; // Если фильтруем только по email, используем AND
-      }
+      filter.email = ILike(`%${query.searchEmailTerm}%`);
     }
 
-    const users = await this.dataSource.query(
-      `SELECT * FROM "Users"
-       WHERE ${whereClause}
-       ORDER BY "${sortBy}" ${sortDirection}
-       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, limit, offset],
-    );
+    const [users, totalCount] = await this.usersRepository.findAndCount({
+      where: filter,
+      order: { [query.sortBy]: query.sortDirection },
+      skip: query.calculateSkip(),
+      take: query.pageSize,
+    });
 
-    const totalCountResult = await this.dataSource.query(
-      `SELECT COUNT(*) FROM "Users" WHERE ${whereClause}`,
-      params,
-    );
-
-    const totalCount = Number(totalCountResult[0].count);
     const items = users.map(UserViewDto.mapToView);
 
     return PaginatedViewDto.mapToView({
@@ -60,15 +46,15 @@ export class UsersQueryRepository {
   }
 
   async getUserByIdOrNotFoundFail(id: string): Promise<UserViewDto> {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE "Id" = $1 AND "DeletionStatus" != $2`,
-      [id, DeletionStatus.PermanentDeleted],
-    );
+    const user = await this.usersRepository.findOneBy({
+      id: +id,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
 
-    if (!user.length) {
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return UserViewDto.mapToView(user[0]);
+    return UserViewDto.mapToView(user);
   }
 }

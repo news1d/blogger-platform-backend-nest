@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
 import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { Blacklist } from '../../domain/blacklist.entity';
 
 export class RefreshTokenCommand {
   constructor(
@@ -39,7 +40,9 @@ export class RefreshTokenUseCase
     newAccessToken: string;
     newRefreshToken: string;
   }> {
-    await this.blacklistRepository.addToken(refreshToken);
+    const blacklistedRefreshToken = Blacklist.createInstance(refreshToken);
+
+    await this.blacklistRepository.save(blacklistedRefreshToken);
 
     const newAccessToken = this.accessTokenContext.sign({
       id: userId,
@@ -53,16 +56,15 @@ export class RefreshTokenUseCase
     const tokenData =
       await this.authService.getRefreshTokenData(newRefreshToken);
 
-    await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
-      userId,
-      deviceId,
-    );
+    const device =
+      await this.securityDevicesRepository.getDeviceByIdAndUserIdOrFails(
+        userId,
+        deviceId,
+      );
 
-    await this.securityDevicesRepository.updateTokenData(
-      deviceId,
-      tokenData.issuedAt,
-      tokenData.expiresAt,
-    );
+    device.updateTokenData(tokenData.issuedAt, tokenData.expiresAt);
+
+    await this.securityDevicesRepository.save(device);
 
     return { newAccessToken, newRefreshToken };
   }

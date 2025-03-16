@@ -1,6 +1,4 @@
-import { getConnectionToken } from '@nestjs/mongoose';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
-import { Connection } from 'mongoose';
 import { UsersTestManager } from './users-test-manager';
 import { deleteAllData } from './delete-all-data';
 import { EmailService } from '../../src/features/notifications/email.service';
@@ -37,7 +35,6 @@ export const initSettings = async (
 
   await app.init();
 
-  const databaseConnection = app.get<Connection>(getConnectionToken());
   const httpServer = app.getHttpServer();
   const authConfig = app.get(AuthConfig);
   const userTestManager = new UsersTestManager(app, authConfig);
@@ -49,7 +46,6 @@ export const initSettings = async (
 
   return {
     app,
-    databaseConnection,
     httpServer,
     userTestManger: userTestManager,
     blogsTestManager,

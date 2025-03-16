@@ -3,6 +3,7 @@ import { CreateUserDto } from '../../dto/create-user.dto';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../infrastructure/users.repository';
+import { User } from '../../domain/user.entity';
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}
@@ -42,12 +43,14 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
       dto.password,
     );
 
-    const user = await this.usersRepository.createUser({
+    const user = User.createInstance({
       email: dto.email,
       login: dto.login,
       passwordHash: passwordHash,
     });
 
-    return user.Id.toString();
+    await this.usersRepository.save(user);
+
+    return user.id.toString();
   }
 }

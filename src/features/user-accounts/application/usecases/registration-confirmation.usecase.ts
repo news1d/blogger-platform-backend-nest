@@ -15,27 +15,28 @@ export class RegistrationConfirmationUseCase
   async execute({ code }: RegistrationConfirmationCommand): Promise<void> {
     const user = await this.usersRepository.getUserByConfirmationCode(code);
 
-    if (!user || user.EmailConfirmationCode !== code) {
+    if (!user || user.userMeta.emailConfirmationCode !== code) {
       throw BadRequestDomainException.create(
         'Verification code incorrect',
         'code',
       );
     }
 
-    if (user.IsEmailConfirmed) {
+    if (user.userMeta.isEmailConfirmed) {
       throw BadRequestDomainException.create(
         'The account has already been confirmed',
         'code',
       );
     }
 
-    if (user.EmailConfirmationExpiration! < new Date()) {
+    if (user.userMeta.emailConfirmationExpiration! < new Date()) {
       throw BadRequestDomainException.create(
         'Verification code expired',
         'code',
       );
     }
 
-    await this.usersRepository.updateEmailConfirmationStatus(user.Id);
+    user.updateEmailConfirmationStatus();
+    await this.usersRepository.save(user);
   }
 }

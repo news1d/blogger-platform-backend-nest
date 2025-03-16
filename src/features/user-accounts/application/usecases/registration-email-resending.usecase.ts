@@ -27,7 +27,7 @@ export class RegistrationEmailResendingUseCase
       );
     }
 
-    if (user.IsEmailConfirmed) {
+    if (user.userMeta.isEmailConfirmed) {
       throw BadRequestDomainException.create(
         'Email is already confirmed',
         'email',
@@ -36,9 +36,9 @@ export class RegistrationEmailResendingUseCase
 
     const confirmCode = randomUUID().toString();
 
-    // user.setEmailConfirmationCode(confirmCode);
-    await this.usersRepository.setEmailConfirmationCode(user.Id, confirmCode);
+    user.setEmailConfirmationCode(confirmCode);
+    await this.usersRepository.save(user);
 
-    this.emailService.sendConfirmationEmail(user.Email, confirmCode);
+    this.emailService.sendConfirmationEmail(user.email, confirmCode);
   }
 }

@@ -1,6 +1,7 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { TerminateDeviceCommand } from './terminate-device.usecase';
 import { BlacklistRepository } from '../../infrastructure/blacklist.repository';
+import { Blacklist } from '../../domain/blacklist.entity';
 
 export class LogoutUserCommand {
   constructor(
@@ -18,7 +19,9 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
   ) {}
 
   async execute({ userId, deviceId, refreshToken }: LogoutUserCommand) {
-    await this.blacklistRepository.addToken(refreshToken);
+    const blacklistedRefreshToken = Blacklist.createInstance(refreshToken);
+
+    await this.blacklistRepository.save(blacklistedRefreshToken);
 
     await this.commandBus.execute<TerminateDeviceCommand>(
       new TerminateDeviceCommand(userId, deviceId),

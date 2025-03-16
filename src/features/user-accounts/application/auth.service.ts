@@ -23,14 +23,14 @@ export class AuthService {
 
     const isPasswordValid = await this.cryptoService.comparePasswords({
       password,
-      hash: user.PasswordHash,
+      hash: user.passwordHash,
     });
 
     if (!isPasswordValid) {
       return null;
     }
 
-    return { id: user.Id.toString() };
+    return { id: user.id.toString() };
   }
 
   async getRefreshTokenData(

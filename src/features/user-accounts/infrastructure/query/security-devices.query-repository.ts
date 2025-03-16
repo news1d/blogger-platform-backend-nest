@@ -1,24 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { DeviceViewDto } from '../../api/view-dto/devices.view-dto';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Device } from '../../domain/device.entity';
 
 @Injectable()
 export class SecurityDevicesQueryRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Device) private deviceRepository: Repository<Device>,
+  ) {}
 
   async getAllDevices(userId: string): Promise<DeviceViewDto[]> {
-    const query = `
-      SELECT * FROM "Devices"
-      WHERE "UserId" = $1
-      AND "DeletionStatus" = $2
-    `;
-    const result = await this.dataSource.query(query, [
-      userId,
-      DeletionStatus.NotDeleted,
-    ]);
+    const devices = await this.deviceRepository.findBy({
+      userId: +userId,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
 
-    return result.map(DeviceViewDto.mapToView);
+    return devices.map(DeviceViewDto.mapToView);
   }
 }

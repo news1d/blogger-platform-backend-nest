@@ -22,14 +22,14 @@ export class UpdatePasswordUseCase
       dto.recoveryCode,
     );
 
-    if (!user || user.PasswordRecoveryCode !== dto.recoveryCode) {
+    if (!user || user.userMeta.passwordRecoveryCode !== dto.recoveryCode) {
       throw BadRequestDomainException.create(
         'Recovery code incorrect',
         'recoveryCode',
       );
     }
 
-    if (user.PasswordRecoveryExpiration! < new Date()) {
+    if (user.userMeta.passwordRecoveryExpiration! < new Date()) {
       throw BadRequestDomainException.create(
         'Recovery code expired',
         'recoveryCode',
@@ -40,6 +40,7 @@ export class UpdatePasswordUseCase
       dto.newPassword,
     );
 
-    await this.usersRepository.updatePasswordHash(user.Id, passwordHash);
+    user.updatePasswordHash(passwordHash);
+    await this.usersRepository.save(user);
   }
 }

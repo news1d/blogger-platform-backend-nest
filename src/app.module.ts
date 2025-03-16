@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersController } from './features/user-accounts/api/users.controller';
-import { MongooseModule } from '@nestjs/mongoose';
 import {
   BlogsController,
   BlogsSaController,
@@ -79,6 +78,10 @@ import { UpdatePostFromBlogUseCase } from './features/bloggers-platform/blogs/ap
 import { PostLikesRepository } from './features/bloggers-platform/posts/infrastructure/post-likes.repository';
 import { CommentsRepository } from './features/bloggers-platform/comments/infrastructure/comments.repository';
 import { CommentsQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.query-repository';
+import { User } from './features/user-accounts/domain/user.entity';
+import { Device } from './features/user-accounts/domain/device.entity';
+import { Blacklist } from './features/user-accounts/domain/blacklist.entity';
+import { UserMeta } from './features/user-accounts/domain/user-meta.entity';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -139,18 +142,13 @@ const securityDevicesUseCases = [
           password: coreConfig.dbPassword,
           database: coreConfig.dbName,
           ssl: true,
-          autoLoadEntities: false,
-          synchronize: false,
+          autoLoadEntities: true,
+          synchronize: true,
         };
       },
       inject: [CoreConfig],
     }),
-    MongooseModule.forRootAsync({
-      useFactory: (coreConfig: CoreConfig) => {
-        return { uri: coreConfig.mongoURI };
-      },
-      inject: [CoreConfig],
-    }),
+    TypeOrmModule.forFeature([User, UserMeta, Device, Blacklist]),
     MailerModule.forRootAsync({
       useFactory: (emailConfig: EmailConfig) => ({
         transport: {

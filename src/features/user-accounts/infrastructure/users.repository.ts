@@ -1,173 +1,76 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { CreateUserDomainDto } from '../domain/dto/create-user.domain.dto';
-import { add } from 'date-fns';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../domain/user.entity';
+import { DeletionStatus } from '../../../core/dto/deletion-status';
+import { UserMeta } from '../domain/user-meta.entity';
 
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(UserMeta)
+    private userMetaRepository: Repository<UserMeta>,
+  ) {}
 
-  async getUserByIdOrNotFoundFail(id: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE "Id" = $1 AND "DeletionStatus" != 'PermanentDeleted'`,
-      [id],
-    );
+  async getUserByIdOrNotFoundFail(id: string): Promise<User> {
+    const user = await this.usersRepository.findOneBy({
+      id: +id,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
 
-    if (!user.length) {
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user[0];
+    return user;
   }
 
-  async getUserByLogin(login: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE "Login" = $1 AND "DeletionStatus" != 'PermanentDeleted'`,
-      [login],
-    );
-    return user.length ? user[0] : null;
+  async getUserByLogin(login: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({
+      login: login,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
   }
 
-  async getUserByEmail(email: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" u
-                         JOIN "UserMeta" um ON u."Id" = um."UserId"
-       WHERE "Email" = $1
-         AND "DeletionStatus" != 'PermanentDeleted'`,
-      [email],
-    );
-    return user.length ? user[0] : null;
+  async getUserByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({
+      email: email,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
   }
 
-  async getUserByRecoveryCode(code: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" u
-                         JOIN "UserMeta" um ON u."Id" = um."UserId"
-       WHERE um."PasswordRecoveryCode" = $1
-         AND u."DeletionStatus" != 'PermanentDeleted'`,
-      [code],
-    );
-    return user.length ? user[0] : null;
+  async getUserByRecoveryCode(code: string): Promise<User | null> {
+    const userMeta = await this.userMetaRepository.findOneBy({
+      passwordRecoveryCode: code,
+    });
+
+    return this.usersRepository.findOneBy({
+      id: userMeta?.userId,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
   }
 
-  async getUserByConfirmationCode(code: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" u 
-      JOIN "UserMeta" um ON u."Id" = um."UserId" 
-      WHERE um."EmailConfirmationCode" = $1 AND u."DeletionStatus" != 'PermanentDeleted'`,
-      [code],
-    );
-    return user.length ? user[0] : null;
+  async getUserByConfirmationCode(code: string): Promise<User | null> {
+    const userMeta = await this.userMetaRepository.findOneBy({
+      emailConfirmationCode: code,
+    });
+
+    return this.usersRepository.findOneBy({
+      id: userMeta?.userId,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
   }
 
-  async getUserByLoginOrEmail(loginOrEmail: string) {
-    const user = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE ("Login" = $1 OR "Email" = $1) AND "DeletionStatus" != 'PermanentDeleted'`,
-      [loginOrEmail],
-    );
-    return user.length ? user[0] : null;
+  async getUserByLoginOrEmail(loginOrEmail: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: [
+        { login: loginOrEmail, deletionStatus: DeletionStatus.NotDeleted },
+        { email: loginOrEmail, deletionStatus: DeletionStatus.NotDeleted },
+      ],
+    });
   }
 
-  async createUser(dto: CreateUserDomainDto) {
-    // Создаем пользователя и получаем его данные
-    const user = await this.dataSource.query(
-      `INSERT INTO "Users" ("Login", "Email", "PasswordHash")
-       VALUES ($1, $2, $3) RETURNING *;`,
-      [dto.login, dto.email, dto.passwordHash],
-    );
-
-    const userId = user[0].Id;
-
-    // Создаем запись в таблице UserMeta с дефолтными значениями для остальных полей
-    await this.dataSource.query(
-      `INSERT INTO "UserMeta" ("UserId")
-     VALUES ($1);`,
-      [userId],
-    );
-
-    return user[0];
-  }
-
-  async makeDeleted(id: string) {
-    const result = await this.dataSource.query(
-      `UPDATE "Users"
-       SET "DeletionStatus" = 'PermanentDeleted'
-       WHERE "Id" = $1 AND "DeletionStatus" = 'NotDeleted'
-       RETURNING *;`,
-      [id],
-    );
-
-    if (!result.length) {
-      throw new Error('User already deleted or not found');
-    }
-    return result[0];
-  }
-
-  async updatePasswordHash(id: string, newPasswordHash: string) {
-    const query = `
-        UPDATE "Users"
-        SET "PasswordHash" = $1, "UpdatedAt" = NOW()
-        WHERE "Id" = $2 AND "DeletionStatus" != 'PermanentDeleted'
-        RETURNING *;
-    `;
-
-    const result = await this.dataSource.query(query, [newPasswordHash, id]);
-
-    if (!result.length) {
-      throw new NotFoundException('User not found or already deleted');
-    }
-
-    return result[0];
-  }
-
-  async setPasswordRecoveryCode(userId: string, code: string) {
-    const expirationDate = add(new Date(), { minutes: 5 });
-
-    const result = await this.dataSource.query(
-      `UPDATE "UserMeta"
-       SET "PasswordRecoveryCode" = $1, "PasswordRecoveryExpiration" = $2
-       WHERE "UserId" = $3
-       RETURNING *;`,
-      [code, expirationDate, userId],
-    );
-
-    if (!result.length) {
-      throw new NotFoundException('User not found or UserMeta not found');
-    }
-
-    return result[0];
-  }
-
-  async setEmailConfirmationCode(userId: string, code: string) {
-    const expirationDate = add(new Date(), { minutes: 5 });
-
-    const result = await this.dataSource.query(
-      `UPDATE "UserMeta"
-     SET "EmailConfirmationCode" = $1, "EmailConfirmationExpiration" = $2
-     WHERE "UserId" = $3
-     RETURNING *;`,
-      [code, expirationDate, userId],
-    );
-
-    if (!result.length) {
-      throw new NotFoundException('User not found or UserMeta not found');
-    }
-
-    return result[0];
-  }
-
-  async updateEmailConfirmationStatus(userId: string) {
-    const result = await this.dataSource.query(
-      `UPDATE "UserMeta"
-         SET "IsEmailConfirmed" = true
-         WHERE "UserId" = $1 RETURNING *;`,
-      [userId],
-    );
-
-    if (!result.length) {
-      throw new NotFoundException('User not found or UserMeta not found');
-    }
-
-    return result[0];
+  async save(user: User) {
+    return this.usersRepository.save(user);
   }
 }

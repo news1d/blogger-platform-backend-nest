@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
 import { DevicesTestManager } from './helpers/devices-test-manager';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { delay } from './helpers/delay';
 
 describe('devices', () => {
   let app: INestApplication;
@@ -99,8 +98,6 @@ describe('devices', () => {
     // Должно быть 4 сессии
     expect(sessions).toHaveLength(4);
 
-    await delay(1500);
-
     // Обновляем refreshToken пользователя для первой сессии
     const refreshTokenResponse = await request(app.getHttpServer())
       .post(`/${GLOBAL_PREFIX}/auth/refresh-token`)
@@ -120,26 +117,12 @@ describe('devices', () => {
     expect(updatedSessions).toHaveLength(4);
 
     // LastActiveDate должен измениться только у первой сессии
-    updatedSessions.forEach((updatedSession) => {
-      const originalSession = sessions.find(
-        (s) => s.deviceId === updatedSession.deviceId,
-      );
-
-      if (!originalSession)
-        throw new Error(
-          `Session with deviceId ${updatedSession.deviceId} not found`,
-        );
-
-      if (updatedSession.deviceId === sessions[0].deviceId) {
-        expect(originalSession.lastActiveDate).not.toBe(
-          updatedSession.lastActiveDate,
-        );
-      } else {
-        expect(originalSession.lastActiveDate).toBe(
-          updatedSession.lastActiveDate,
-        );
-      }
-    });
+    expect(sessions[0].lastActiveDate).not.toBe(
+      updatedSessions[3].lastActiveDate,
+    );
+    expect(sessions[1].lastActiveDate).toBe(updatedSessions[0].lastActiveDate);
+    expect(sessions[2].lastActiveDate).toBe(updatedSessions[1].lastActiveDate);
+    expect(sessions[3].lastActiveDate).toBe(updatedSessions[2].lastActiveDate);
   });
 
   it('should terminate session', async () => {

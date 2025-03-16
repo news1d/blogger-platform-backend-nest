@@ -28,8 +28,9 @@ export class RegisterUserUseCase
 
     const user = await this.usersRepository.getUserByIdOrNotFoundFail(userId);
 
-    await this.usersRepository.setEmailConfirmationCode(user.Id, confirmCode);
+    user.setEmailConfirmationCode(confirmCode);
+    await this.usersRepository.save(user);
 
-    this.emailService.sendConfirmationEmail(user.Email, confirmCode);
+    this.emailService.sendConfirmationEmail(user.email, confirmCode);
   }
 }
