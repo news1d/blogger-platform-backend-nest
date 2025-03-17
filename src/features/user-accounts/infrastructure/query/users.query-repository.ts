@@ -16,20 +16,25 @@ export class UsersQueryRepository {
   async getAllUsers(
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
-    const filter: any = {
-      deletionStatus: DeletionStatus.NotDeleted,
-    };
+    const searchConditions: any[] = [];
 
     if (query.searchLoginTerm) {
-      filter.login = ILike(`%${query.searchLoginTerm}%`);
+      searchConditions.push({ login: ILike(`%${query.searchLoginTerm}%`) });
     }
 
     if (query.searchEmailTerm) {
-      filter.email = ILike(`%${query.searchEmailTerm}%`);
+      searchConditions.push({ email: ILike(`%${query.searchEmailTerm}%`) });
     }
 
+    const totalFilter = searchConditions.length
+      ? searchConditions.map((condition) => ({
+          ...condition,
+          deletionStatus: DeletionStatus.NotDeleted,
+        }))
+      : { deletionStatus: DeletionStatus.NotDeleted };
+
     const [users, totalCount] = await this.usersRepository.findAndCount({
-      where: filter,
+      where: totalFilter,
       order: { [query.sortBy]: query.sortDirection },
       skip: query.calculateSkip(),
       take: query.pageSize,
