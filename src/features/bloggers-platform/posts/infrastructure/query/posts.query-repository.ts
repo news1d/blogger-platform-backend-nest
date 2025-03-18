@@ -20,20 +20,25 @@ export class PostsQueryRepository {
     userId?: string | null,
     blogId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    const filter: any = {
-      deletionStatus: DeletionStatus.NotDeleted,
-    };
+    const queryBuilder = this.postsRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.blog', 'blog')
+      .where('post.deletionStatus = :deletionStatus', {
+        deletionStatus: DeletionStatus.NotDeleted,
+      });
 
     if (blogId) {
-      filter.blogId = blogId;
+      queryBuilder.andWhere('post.blogId = :blogId', { blogId });
     }
 
-    const [posts, totalCount] = await this.postsRepository.findAndCount({
-      where: filter,
-      order: { [query.sortBy]: query.sortDirection },
-      skip: query.calculateSkip(),
-      take: query.pageSize,
-    });
+    const sortField =
+      query.sortBy === 'blogName' ? 'blog.name' : `post.${query.sortBy}`;
+
+    const [posts, totalCount] = await queryBuilder
+      .orderBy(sortField, query.sortDirection.toUpperCase() as 'ASC' | 'DESC')
+      .skip(query.calculateSkip())
+      .take(query.pageSize)
+      .getManyAndCount();
 
     const items = await Promise.all(
       posts.map((post) => this.mapToView(post, userId)),
@@ -107,22 +112,13 @@ export class PostsQueryRepository {
     return { likesCount, dislikesCount };
   }
 
-  async getBlogNameForPost(postId: string): Promise<string> {
-    const post = await this.postsRepository.findOne({
-      where: { id: +postId },
-      relations: ['blog'],
-    });
-
-    return post!.blog.name;
-  }
-
   async getPostByIdOrNotFoundFail(
     postId: string,
     userId?: string | null,
   ): Promise<PostViewDto> {
-    const post = await this.postsRepository.findOneBy({
-      id: +postId,
-      deletionStatus: DeletionStatus.NotDeleted,
+    const post = await this.postsRepository.findOne({
+      where: { id: +postId, deletionStatus: DeletionStatus.NotDeleted },
+      relations: ['blog'],
     });
 
     if (!post) {
@@ -140,7 +136,6 @@ export class PostsQueryRepository {
     //   userId,
     // );
     // const newestLikes = await this.getNewestLikesForPost(post.id.toString(), 3);
-    const blogName = await this.getBlogNameForPost(post.id.toString());
 
     const dto = new PostViewDto();
 
@@ -149,7 +144,7 @@ export class PostsQueryRepository {
     dto.shortDescription = post.shortDescription;
     dto.content = post.content;
     dto.blogId = post.blogId.toString();
-    dto.blogName = blogName;
+    dto.blogName = post.blog.name;
     dto.createdAt = post.createdAt;
     dto.extendedLikesInfo = {
       likesCount: 0,
