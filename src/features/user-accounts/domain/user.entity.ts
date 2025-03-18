@@ -2,18 +2,17 @@ import { CreateUserDomainDto } from './dto/create-user.domain.dto';
 import { DeletionStatus } from '../../../core/dto/deletion-status';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { Device } from './device.entity';
 import { UserMeta } from './user-meta.entity';
+import { BaseEntity } from '../../../core/entities/base.entity';
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,12 +24,6 @@ export class User {
 
   @Column()
   passwordHash: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @Column({
     type: 'enum',
