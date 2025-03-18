@@ -24,7 +24,7 @@ export class BlogsTestManager {
     websiteUrl: 'https://techblog.com',
   };
 
-  postData: Omit<CreatePostDto, 'blogId' | 'blogName'> = {
+  postData: Omit<CreatePostDto, 'blogId'> = {
     title: 'First Post',
     shortDescription: 'Short description about post',
     content: 'Some content',

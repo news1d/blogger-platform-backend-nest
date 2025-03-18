@@ -18,7 +18,7 @@ export class PostsTestManager {
   authUsername = this.authConfig.authUsername;
   authPassword = this.authConfig.authPassword;
 
-  postData: Omit<CreatePostDto, 'blogId' | 'blogName'> = {
+  postData: Omit<CreatePostDto, 'blogId'> = {
     title: 'First Post',
     shortDescription: 'Short description about post',
     content: 'Some content',
