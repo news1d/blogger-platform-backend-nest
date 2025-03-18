@@ -1,7 +1,7 @@
 export enum BlogsSortBy {
-  CreatedAt = 'CreatedAt',
-  Name = 'Name',
-  Description = 'Description',
-  WebsiteUrl = 'WebsiteUrl',
-  IsMembership = 'IsMembership',
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  Description = 'description',
+  WebsiteUrl = 'websiteUrl',
+  IsMembership = 'isMembership',
 }
