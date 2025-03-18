@@ -2,9 +2,10 @@ import { CreatePostDto } from '../../dto/create-post.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { PostsRepository } from '../../infrastructure/posts.repository';
+import { Post } from '../../domain/post.entity';
 
 export class CreatePostCommand {
-  constructor(public dto: Omit<CreatePostDto, 'blogName'>) {}
+  constructor(public dto: CreatePostDto) {}
 }
 
 @CommandHandler(CreatePostCommand)
@@ -15,18 +16,17 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   ) {}
 
   async execute({ dto }: CreatePostCommand): Promise<string> {
-    const blog = await this.blogsRepository.getBlogByIdOrNotFoundFail(
-      dto.blogId,
-    );
+    await this.blogsRepository.getBlogByIdOrNotFoundFail(dto.blogId);
 
-    const post = await this.postsRepository.createPost({
+    const post = Post.createInstance({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
       blogId: dto.blogId,
-      blogName: blog.name,
     });
 
-    return post.Id.toString();
+    await this.postsRepository.save(post);
+
+    return post.id.toString();
   }
 }

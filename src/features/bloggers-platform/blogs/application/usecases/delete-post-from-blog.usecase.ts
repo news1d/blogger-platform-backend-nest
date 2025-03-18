@@ -20,10 +20,13 @@ export class DeletePostFromBlogUseCase
 
   async execute({ blogId, postId }: DeletePostFromBlogCommand): Promise<void> {
     await this.blogsRepository.getBlogByIdOrNotFoundFail(blogId);
-    await this.postsRepository.getPostByIdAndBlogIdOrNotFoundFail(
+    const post = await this.postsRepository.getPostByIdAndBlogIdOrNotFoundFail(
       blogId,
       postId,
     );
-    await this.postsRepository.makeDeleted(postId);
+
+    post.makeDeleted();
+
+    await this.postsRepository.save(post);
   }
 }

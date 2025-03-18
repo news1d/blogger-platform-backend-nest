@@ -10,7 +10,10 @@ export class DeletePostUseCase implements ICommandHandler<DeletePostCommand> {
   constructor(private postsRepository: PostsRepository) {}
 
   async execute({ id }: DeletePostCommand): Promise<void> {
-    await this.postsRepository.getPostByIdOrNotFoundFail(id);
-    await this.postsRepository.makeDeleted(id);
+    const post = await this.postsRepository.getPostByIdOrNotFoundFail(id);
+
+    post.makeDeleted();
+
+    await this.postsRepository.save(post);
   }
 }

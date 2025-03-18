@@ -26,14 +26,18 @@ export class UpdatePostFromBlogUseCase
     dto,
   }: UpdatePostFromBlogCommand): Promise<void> {
     await this.blogsRepository.getBlogByIdOrNotFoundFail(blogId);
-    await this.postsRepository.getPostByIdAndBlogIdOrNotFoundFail(
+    const post = await this.postsRepository.getPostByIdAndBlogIdOrNotFoundFail(
       blogId,
       postId,
     );
-    await this.postsRepository.update(postId, {
+
+    post.update({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
+      blogId: blogId,
     });
+
+    await this.postsRepository.save(post);
   }
 }

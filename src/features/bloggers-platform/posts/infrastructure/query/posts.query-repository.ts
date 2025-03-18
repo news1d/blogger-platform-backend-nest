@@ -1,48 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { GetPostsQueryParams } from '../../api/input-dto/get-posts-query-params';
 import { NewestLikesDto, PostViewDto } from '../../api/view-dto/posts.view-dto';
 import { DeletionStatus } from '../../../../../core/dto/deletion-status';
 import { LikeStatus } from '../../../../../core/dto/like-status';
+import { Post } from '../../domain/post.entity';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private dataSource: DataSource,
+    @InjectRepository(Post) private postsRepository: Repository<Post>,
+  ) {}
 
   async getAllPosts(
     query: GetPostsQueryParams,
     userId?: string | null,
     blogId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    const offset = query.calculateSkip();
-    const limit = query.pageSize;
-    const sortBy = query.sortBy.charAt(0).toUpperCase() + query.sortBy.slice(1);
-    const sortDirection = query.sortDirection.toUpperCase();
-
-    let whereClause = `"DeletionStatus" != $1`;
-    const params: any[] = [DeletionStatus.PermanentDeleted];
+    const filter: any = {
+      deletionStatus: DeletionStatus.NotDeleted,
+    };
 
     if (blogId) {
-      params.push(blogId);
-      whereClause += ` AND "BlogId" = $${params.length}`;
+      filter.blogId = blogId;
     }
 
-    const posts = await this.dataSource.query(
-      `SELECT * FROM "Posts"
-     WHERE ${whereClause}
-     ORDER BY "${sortBy}" ${sortDirection}
-     LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, limit, offset],
-    );
+    const [posts, totalCount] = await this.postsRepository.findAndCount({
+      where: filter,
+      order: { [query.sortBy]: query.sortDirection },
+      skip: query.calculateSkip(),
+      take: query.pageSize,
+    });
 
-    const totalCountResult = await this.dataSource.query(
-      `SELECT COUNT(*) FROM "Posts" WHERE ${whereClause}`,
-      params,
-    );
-
-    const totalCount = Number(totalCountResult[0].count);
     const items = await Promise.all(
       posts.map((post) => this.mapToView(post, userId)),
     );
@@ -116,55 +108,61 @@ export class PostsQueryRepository {
   }
 
   async getBlogNameForPost(postId: string): Promise<string> {
-    const result = await this.dataSource.query(
-      `SELECT b."Name"
-     FROM "Posts" p
-     JOIN "Blogs" b ON p."BlogId" = b."Id"
-     WHERE p."Id" = $1`,
-      [postId],
-    );
+    const post = await this.postsRepository.findOne({
+      where: { id: +postId },
+      relations: ['blog'],
+    });
 
-    return result[0].Name;
+    return post!.blog.name;
   }
 
   async getPostByIdOrNotFoundFail(
     postId: string,
     userId?: string | null,
   ): Promise<PostViewDto> {
-    const post = await this.dataSource.query(
-      `SELECT * FROM "Posts" WHERE "Id" = $1 AND "DeletionStatus" != $2`,
-      [postId, DeletionStatus.PermanentDeleted],
-    );
+    const post = await this.postsRepository.findOneBy({
+      id: +postId,
+      deletionStatus: DeletionStatus.NotDeleted,
+    });
 
-    if (!post.length) {
+    if (!post) {
       throw new NotFoundException('Post not found');
     }
 
-    return this.mapToView(post[0], userId);
+    return this.mapToView(post, userId);
   }
 
-  async mapToView(post, userId?: string | null): Promise<PostViewDto> {
-    const { likesCount, dislikesCount } =
-      await this.getLikesDislikesCountForPost(post.Id);
-    const myStatus = await this.getUserLikeStatusForPost(post.Id, userId);
-    const newestLikes = await this.getNewestLikesForPost(post.Id, 3);
-    const blogName = await this.getBlogNameForPost(post.Id);
+  async mapToView(post: Post, userId?: string | null): Promise<PostViewDto> {
+    // const { likesCount, dislikesCount } =
+    //   await this.getLikesDislikesCountForPost(post.id.toString());
+    // const myStatus = await this.getUserLikeStatusForPost(
+    //   post.id.toString(),
+    //   userId,
+    // );
+    // const newestLikes = await this.getNewestLikesForPost(post.id.toString(), 3);
+    const blogName = await this.getBlogNameForPost(post.id.toString());
 
     const dto = new PostViewDto();
 
-    dto.id = post.Id.toString();
-    dto.title = post.Title;
-    dto.shortDescription = post.ShortDescription;
-    dto.content = post.Content;
-    dto.blogId = post.BlogId.toString();
+    dto.id = post.id.toString();
+    dto.title = post.title;
+    dto.shortDescription = post.shortDescription;
+    dto.content = post.content;
+    dto.blogId = post.blogId.toString();
     dto.blogName = blogName;
-    dto.createdAt = post.CreatedAt;
+    dto.createdAt = post.createdAt;
     dto.extendedLikesInfo = {
-      likesCount: +likesCount,
-      dislikesCount: +dislikesCount,
-      myStatus: myStatus,
-      newestLikes: newestLikes,
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: LikeStatus.None,
+      newestLikes: [],
     };
+    // dto.extendedLikesInfo = {
+    //   likesCount: +likesCount,
+    //   dislikesCount: +dislikesCount,
+    //   myStatus: myStatus,
+    //   newestLikes: newestLikes,
+    // };
 
     return dto;
   }

@@ -82,6 +82,8 @@ import { User } from './features/user-accounts/domain/user.entity';
 import { Device } from './features/user-accounts/domain/device.entity';
 import { Blacklist } from './features/user-accounts/domain/blacklist.entity';
 import { UserMeta } from './features/user-accounts/domain/user-meta.entity';
+import { Blog } from './features/bloggers-platform/blogs/domain/blog.entity';
+import { Post } from './features/bloggers-platform/posts/domain/post.entity';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -148,7 +150,7 @@ const securityDevicesUseCases = [
       },
       inject: [CoreConfig],
     }),
-    TypeOrmModule.forFeature([User, UserMeta, Device, Blacklist]),
+    TypeOrmModule.forFeature([User, UserMeta, Device, Blacklist, Blog, Post]),
     MailerModule.forRootAsync({
       useFactory: (emailConfig: EmailConfig) => ({
         transport: {

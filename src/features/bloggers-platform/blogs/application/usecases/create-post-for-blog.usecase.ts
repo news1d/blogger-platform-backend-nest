@@ -1,12 +1,12 @@
 import { CreatePostDto } from '../../../posts/dto/create-post.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { Post } from '../../../posts/domain/post.entity';
 
 export class CreatePostForBlogCommand {
   constructor(
     public blogId: string,
-    public blogName: string,
-    public dto: Omit<CreatePostDto, 'blogId' | 'blogName'>,
+    public dto: Omit<CreatePostDto, 'blogId'>,
   ) {}
 }
 
@@ -16,19 +16,16 @@ export class CreatePostForBlogUseCase
 {
   constructor(private postsRepository: PostsRepository) {}
 
-  async execute({
-    blogId,
-    blogName,
-    dto,
-  }: CreatePostForBlogCommand): Promise<string> {
-    const post = await this.postsRepository.createPost({
+  async execute({ blogId, dto }: CreatePostForBlogCommand): Promise<string> {
+    const post = Post.createInstance({
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
       blogId: blogId,
-      blogName: blogName,
     });
 
-    return post.Id.toString();
+    await this.postsRepository.save(post);
+
+    return post.id.toString();
   }
 }

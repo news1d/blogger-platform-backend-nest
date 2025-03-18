@@ -121,11 +121,10 @@ export class BlogsSaController {
     @Param('blogId') blogId: string,
     @Body() body: CreatePostWithoutBlogIdInputDto,
   ): Promise<PostViewDto> {
-    const blog =
-      await this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
+    await this.blogsQueryRepository.getBlogByIdOrNotFoundFail(blogId);
 
     const postId = await this.commandBus.execute(
-      new CreatePostForBlogCommand(blogId, blog.name, body),
+      new CreatePostForBlogCommand(blogId, body),
     );
 
     return this.postsQueryRepository.getPostByIdOrNotFoundFail(postId);
