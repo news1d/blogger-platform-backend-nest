@@ -282,4 +282,48 @@ describe('posts', () => {
     expect(responseBody.extendedLikesInfo.dislikesCount).toEqual(0);
     expect(responseBody.extendedLikesInfo.myStatus).toEqual(LikeStatus.Like);
   });
+
+  it('should correctly update like status for different users', async () => {
+    const blog = await blogsTestManager.createBlog();
+    const post = await postsTestManager.createPost(blog.id);
+    const users = await usersTestManager.createSeveralUsers(2);
+
+    const accessTokens = await Promise.all(
+      users.map((user) => usersTestManager.login(user.login, '123456789')),
+    );
+
+    // User 1 ставит лайк
+    await request(app.getHttpServer())
+      .put(`/${GLOBAL_PREFIX}/posts/${post.id}/like-status`)
+      .send({ likeStatus: LikeStatus.Like })
+      .auth(accessTokens[0].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    // User 2 получает пост
+    let response = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/posts/${post.id}`)
+      .auth(accessTokens[1].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(response.body.extendedLikesInfo.likesCount).toEqual(1);
+    expect(response.body.extendedLikesInfo.dislikesCount).toEqual(0);
+    expect(response.body.extendedLikesInfo.myStatus).toEqual(LikeStatus.None);
+
+    // User 2 ставит дизлайк
+    await request(app.getHttpServer())
+      .put(`/${GLOBAL_PREFIX}/posts/${post.id}/like-status`)
+      .send({ likeStatus: LikeStatus.Dislike })
+      .auth(accessTokens[1].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    // User 1 получает пост
+    response = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/posts/${post.id}`)
+      .auth(accessTokens[0].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(response.body.extendedLikesInfo.likesCount).toEqual(1);
+    expect(response.body.extendedLikesInfo.dislikesCount).toEqual(1);
+    expect(response.body.extendedLikesInfo.myStatus).toEqual(LikeStatus.Like);
+  });
 });
