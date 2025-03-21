@@ -24,10 +24,12 @@ export class UpdateCommentUseCase
     const comment =
       await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
 
-    if (comment.UserId.toString() !== userId) {
+    if (comment.userId.toString() !== userId) {
       throw new ForbiddenException('You are not the author of the comment');
     }
 
-    await this.commentsRepository.update(commentId, content);
+    comment.update(content);
+
+    await this.commentsRepository.save(comment);
   }
 }

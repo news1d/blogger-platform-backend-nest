@@ -75,7 +75,6 @@ import { PostsRepository } from './features/bloggers-platform/posts/infrastructu
 import { BlogsRepository } from './features/bloggers-platform/blogs/infrastructure/blogs.repository';
 import { DeletePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/delete-post-from-blog.usecase';
 import { UpdatePostFromBlogUseCase } from './features/bloggers-platform/blogs/application/usecases/update-post-from-blog.usecase';
-import { PostLikesRepository } from './features/bloggers-platform/posts/infrastructure/post-likes.repository';
 import { CommentsRepository } from './features/bloggers-platform/comments/infrastructure/comments.repository';
 import { CommentsQueryRepository } from './features/bloggers-platform/comments/infrastructure/query/comments.query-repository';
 import { User } from './features/user-accounts/domain/user.entity';
@@ -84,6 +83,9 @@ import { Blacklist } from './features/user-accounts/domain/blacklist.entity';
 import { UserMeta } from './features/user-accounts/domain/user-meta.entity';
 import { Blog } from './features/bloggers-platform/blogs/domain/blog.entity';
 import { Post } from './features/bloggers-platform/posts/domain/post.entity';
+import { Comment } from './features/bloggers-platform/comments/domain/comment.entity';
+import { CommentLike } from './features/bloggers-platform/comments/domain/comment-like.entity';
+import { PostLike } from './features/bloggers-platform/posts/domain/post-like.entity';
 
 const userUseCases = [
   CreateUserUseCase,
@@ -150,7 +152,17 @@ const securityDevicesUseCases = [
       },
       inject: [CoreConfig],
     }),
-    TypeOrmModule.forFeature([User, UserMeta, Device, Blacklist, Blog, Post]),
+    TypeOrmModule.forFeature([
+      User,
+      UserMeta,
+      Device,
+      Blacklist,
+      Blog,
+      Post,
+      Comment,
+      CommentLike,
+      PostLike,
+    ]),
     MailerModule.forRootAsync({
       useFactory: (emailConfig: EmailConfig) => ({
         transport: {
@@ -219,7 +231,6 @@ const securityDevicesUseCases = [
     BlogsQueryRepository,
     PostsRepository,
     PostsQueryRepository,
-    PostLikesRepository,
     CommentsRepository,
     CommentsQueryRepository,
     TestingRepository,

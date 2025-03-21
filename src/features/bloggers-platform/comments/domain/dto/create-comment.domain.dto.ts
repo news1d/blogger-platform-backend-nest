@@ -1,8 +1,5 @@
 export class CreateCommentDomainDto {
   content: string;
-  commentatorInfo: {
-    userId: string;
-    userLogin: string;
-  };
+  userId: string;
   postId: string;
 }

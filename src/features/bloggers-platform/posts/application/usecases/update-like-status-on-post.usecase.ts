@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../../user-accounts/infrastructure/users.repository';
 import { LikeStatus } from '../../../../../core/dto/like-status';
-import { PostLikesRepository } from '../../infrastructure/post-likes.repository';
 import { PostsRepository } from '../../infrastructure/posts.repository';
+import { PostLike } from '../../domain/post-like.entity';
 
 export class UpdateLikeStatusOnPostCommand {
   constructor(
@@ -19,13 +19,20 @@ export class UpdateLikeStatusOnPostUseCase
   constructor(
     private usersRepository: UsersRepository,
     private postsRepository: PostsRepository,
-    private postLikesRepository: PostLikesRepository,
   ) {}
 
   async execute({ postId, userId, likeStatus }: UpdateLikeStatusOnPostCommand) {
     await this.usersRepository.getUserByIdOrNotFoundFail(userId);
-    await this.postsRepository.getPostByIdOrNotFoundFail(postId);
+    const post = await this.postsRepository.getPostByIdOrNotFoundFail(postId);
 
-    await this.postLikesRepository.updateLikeStatus(userId, postId, likeStatus);
+    let postLike = post.likes.find((like) => like.userId === +userId);
+
+    if (postLike) {
+      postLike.updateLikeStatus(likeStatus);
+    } else {
+      postLike = PostLike.createLikeStatus(userId, postId, likeStatus);
+    }
+
+    await this.postsRepository.save(postLike);
   }
 }

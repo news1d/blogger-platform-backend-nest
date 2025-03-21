@@ -4,12 +4,15 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
 import { CreatePostDomainDto } from './dto/create-post.domain.dto';
 import { CreatePostInputDto } from '../api/input-dto/posts.input-dto';
 import { Blog } from '../../blogs/domain/blog.entity';
+import { Comment } from '../../comments/domain/comment.entity';
+import { PostLike } from './post-like.entity';
 
 @Entity()
 export class Post extends BaseEntity {
@@ -38,6 +41,12 @@ export class Post extends BaseEntity {
     default: DeletionStatus.NotDeleted,
   })
   deletionStatus: DeletionStatus;
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
+
+  @OneToMany(() => PostLike, (postLike) => postLike.post)
+  likes: PostLike[];
 
   static createInstance(dto: CreatePostDomainDto): Post {
     const post = new this();

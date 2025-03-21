@@ -19,10 +19,12 @@ export class DeleteCommentUseCase
     const comment =
       await this.commentsRepository.getCommentByIdOrNotFoundFail(commentId);
 
-    if (comment.UserId.toString() !== userId) {
+    if (comment.userId.toString() !== userId) {
       throw new ForbiddenException('You are not the author of the comment');
     }
 
-    await this.commentsRepository.makeDeleted(commentId);
+    comment.makeDeleted();
+
+    await this.commentsRepository.save(comment);
   }
 }

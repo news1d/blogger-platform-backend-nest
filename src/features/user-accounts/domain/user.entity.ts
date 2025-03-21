@@ -10,6 +10,8 @@ import {
 import { Device } from './device.entity';
 import { UserMeta } from './user-meta.entity';
 import { BaseEntity } from '../../../core/entities/base.entity';
+import { Comment } from '../../bloggers-platform/comments/domain/comment.entity';
+import { CommentLike } from '../../bloggers-platform/comments/domain/comment-like.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -40,6 +42,12 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Device, (device) => device.user)
   devices: Device[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
+
+  @OneToMany(() => CommentLike, (commentLike) => commentLike.user)
+  commentsLikes: CommentLike[];
 
   static createInstance(dto: CreateUserDomainDto): User {
     const user = new this();

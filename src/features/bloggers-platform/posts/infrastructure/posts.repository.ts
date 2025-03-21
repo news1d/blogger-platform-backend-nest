@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
 import { Post } from '../domain/post.entity';
+import { PostLike } from '../domain/post-like.entity';
 
 @Injectable()
 export class PostsRepository {
@@ -39,7 +40,7 @@ export class PostsRepository {
     return post;
   }
 
-  async save(post: Post) {
+  async save(post: Post | PostLike) {
     return this.postsRepository.save(post);
   }
 }
