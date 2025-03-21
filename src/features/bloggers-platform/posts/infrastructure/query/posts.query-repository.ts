@@ -22,6 +22,7 @@ export class PostsQueryRepository {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.blog', 'blog')
       .leftJoinAndSelect('post.likes', 'likes')
+      .leftJoinAndSelect('likes.user', 'user')
       .where('post.deletionStatus = :deletionStatus', {
         deletionStatus: DeletionStatus.NotDeleted,
       });
