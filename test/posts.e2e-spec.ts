@@ -8,6 +8,7 @@ import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
 import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
 import { BlogViewDto } from '../src/features/bloggers-platform/blogs/api/view-dto/blogs.view-dto';
 import { UsersTestManager } from './helpers/users-test-manager';
+import { LikeStatus } from '../src/core/dto/like-status';
 
 describe('posts', () => {
   let app: INestApplication;
@@ -222,5 +223,63 @@ describe('posts', () => {
     expect(responseBody.pagesCount).toBe(2);
     //asc sorting
     expect(responseBody.items[3]).toEqual(comments[comments.length - 1]);
+  });
+
+  it('should change the number of likes and likeStatus', async () => {
+    const blog = await blogsTestManager.createBlog();
+    const post = await postsTestManager.createPost(blog.id);
+    await usersTestManager.createUser();
+
+    const { accessToken } = await usersTestManager.login(
+      usersTestManager.userData.login,
+      usersTestManager.userData.password,
+    );
+
+    await request(app.getHttpServer())
+      .put(`/${GLOBAL_PREFIX}/posts/${post.id}/like-status`)
+      .send({ likeStatus: LikeStatus.Like })
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    const { body: responseBody } = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/posts/${post.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(responseBody.extendedLikesInfo.likesCount).toEqual(1);
+    expect(responseBody.extendedLikesInfo.dislikesCount).toEqual(0);
+    expect(responseBody.extendedLikesInfo.myStatus).toEqual(LikeStatus.Like);
+    expect(responseBody.extendedLikesInfo.newestLikes[0]).toMatchObject({
+      addedAt: expect.any(String),
+      userId: expect.any(String),
+      login: usersTestManager.userData.login,
+    });
+  });
+
+  it('should change the number of likes and likeStatus from multiple users', async () => {
+    const blog = await blogsTestManager.createBlog();
+    const post = await blogsTestManager.createPost(blog.id);
+    const users = await usersTestManager.createSeveralUsers(4);
+
+    const accessTokens = await Promise.all(
+      users.map((user) => usersTestManager.login(user.login, '123456789')),
+    );
+
+    for (let i = 0; i < users.length; i++) {
+      await request(app.getHttpServer())
+        .put(`/${GLOBAL_PREFIX}/posts/${post.id}/like-status`)
+        .send({ likeStatus: LikeStatus.Like })
+        .auth(accessTokens[i].accessToken, { type: 'bearer' })
+        .expect(HttpStatus.NO_CONTENT);
+    }
+
+    const { body: responseBody } = await request(app.getHttpServer())
+      .get(`/${GLOBAL_PREFIX}/posts/${post.id}`)
+      .auth(accessTokens[1].accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(responseBody.extendedLikesInfo.likesCount).toEqual(4);
+    expect(responseBody.extendedLikesInfo.dislikesCount).toEqual(0);
+    expect(responseBody.extendedLikesInfo.myStatus).toEqual(LikeStatus.Like);
   });
 });
