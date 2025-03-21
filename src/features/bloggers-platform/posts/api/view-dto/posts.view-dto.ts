@@ -13,7 +13,8 @@ export class PostViewDto {
 
   static mapToView(post: Post, userId?: string | null): PostViewDto {
     const myStatus = userId
-      ? post.likes.find((like) => like.userId)?.status || LikeStatus.None
+      ? post.likes.find((like) => like.userId === +userId)?.status ||
+        LikeStatus.None
       : LikeStatus.None;
 
     const likesCount = post.likes.filter(
