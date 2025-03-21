@@ -55,7 +55,12 @@ export class PostsQueryRepository {
   ): Promise<PostViewDto> {
     const post = await this.postsRepository.findOne({
       where: { id: +postId, deletionStatus: DeletionStatus.NotDeleted },
-      relations: { blog: true, likes: true },
+      relations: {
+        blog: true,
+        likes: {
+          user: true,
+        },
+      },
     });
 
     if (!post) {

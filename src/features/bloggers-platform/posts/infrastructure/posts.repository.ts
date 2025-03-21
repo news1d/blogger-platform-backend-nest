@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
 import { Post } from '../domain/post.entity';
 import { PostLike } from '../domain/post-like.entity';
@@ -9,12 +9,16 @@ import { PostLike } from '../domain/post-like.entity';
 export class PostsRepository {
   constructor(
     @InjectRepository(Post) private postsRepository: Repository<Post>,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
   async getPostByIdOrNotFoundFail(id: string): Promise<Post> {
-    const post = await this.postsRepository.findOneBy({
-      id: +id,
-      deletionStatus: DeletionStatus.NotDeleted,
+    const post = await this.postsRepository.findOne({
+      where: {
+        id: +id,
+        deletionStatus: DeletionStatus.NotDeleted,
+      },
+      relations: { likes: true },
     });
 
     if (!post) {
@@ -41,6 +45,6 @@ export class PostsRepository {
   }
 
   async save(post: Post | PostLike) {
-    return this.postsRepository.save(post);
+    return this.dataSource.createEntityManager().save(post);
   }
 }
