@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { DeletionStatus } from '../../../../core/dto/deletion-status';
 import { CreateBlogInputDto } from '../api/input-dto/blogs.input-dto';
 import { CreateBlogDomainDto } from './dto/create-blog.domain.dto';
@@ -10,6 +16,7 @@ export class Blog extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column()
   name: string;
 

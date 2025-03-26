@@ -1,13 +1,15 @@
 import { DeletionStatus } from '../../../core/dto/deletion-status';
 import { CreateDeviceDomainDto } from './dto/create-device.domain.dto';
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
 export class Device {
+  @Index()
   @PrimaryColumn()
   id: string;
 
+  @Index()
   @Column({ type: 'integer', nullable: false })
   userId: number;
 

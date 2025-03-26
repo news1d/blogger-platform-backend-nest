@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { add } from 'date-fns';
 import { User } from './user.entity';
 
@@ -11,6 +18,7 @@ export class UserMeta {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Index()
   @Column({ nullable: true })
   emailConfirmationCode: string;
 
@@ -20,6 +28,7 @@ export class UserMeta {
   @Column({ type: 'boolean', default: false })
   isEmailConfirmed: boolean;
 
+  @Index()
   @Column({ nullable: true })
   passwordRecoveryCode: string;
 

@@ -1,7 +1,8 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Blacklist {
+  @Index()
   @PrimaryColumn()
   token: string;
 

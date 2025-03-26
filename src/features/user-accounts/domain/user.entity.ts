@@ -3,6 +3,7 @@ import { DeletionStatus } from '../../../core/dto/deletion-status';
 import {
   Column,
   Entity,
+  Index,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -18,10 +19,12 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Index()
+  @Column({ unique: true })
   login: string;
 
-  @Column()
+  @Index()
+  @Column({ unique: true })
   email: string;
 
   @Column()

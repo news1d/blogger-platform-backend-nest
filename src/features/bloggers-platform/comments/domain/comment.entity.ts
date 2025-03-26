@@ -4,6 +4,7 @@ import { BaseEntity } from '../../../../core/entities/base.entity';
 import {
   Column,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -23,6 +24,7 @@ export class Comment extends BaseEntity {
   @Column({ type: 'integer', nullable: false })
   userId: number;
 
+  @Index()
   @Column({ type: 'integer', nullable: false })
   postId: number;
 

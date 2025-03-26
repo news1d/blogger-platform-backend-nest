@@ -2,6 +2,7 @@ import { BaseEntity } from '../../../../core/entities/base.entity';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -28,6 +29,7 @@ export class Post extends BaseEntity {
   @Column({ nullable: false })
   content: string;
 
+  @Index()
   @Column({ type: 'integer', nullable: false })
   blogId: number;
 
