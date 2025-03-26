@@ -10,7 +10,8 @@ export class CommentViewDto {
 
   static mapToView(comment: Comment, userId?: string | null): CommentViewDto {
     const myStatus = userId
-      ? comment.likes.find((like) => like.userId)?.status || LikeStatus.None
+      ? comment.likes.find((like) => like.userId === +userId)?.status ||
+        LikeStatus.None
       : LikeStatus.None;
 
     const likesCount = comment.likes.filter(
